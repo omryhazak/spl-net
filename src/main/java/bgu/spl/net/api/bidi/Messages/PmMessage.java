@@ -4,6 +4,7 @@ public class PmMessage implements Message {
 
     private String toSend;
     private String content;
+    private int opCode =  6;
 
     public PmMessage(String toSend, String content) {
         this.toSend = toSend;

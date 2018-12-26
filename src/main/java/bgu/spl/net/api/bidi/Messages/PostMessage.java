@@ -6,6 +6,7 @@ public class PostMessage implements Message {
 
     private String content;
     private LinkedList<String> usersNametoSend;
+    private int opCode =  5;
 
     public PostMessage(String content, LinkedList<String> usersNametoSend) {
         this.content = content;

@@ -4,6 +4,7 @@ public class RegisterMessage implements Message {
 
     private String userName;
     private String password;
+    private int opCode =  1;
 
     public RegisterMessage(String userName, String password) {
         this.userName = userName;

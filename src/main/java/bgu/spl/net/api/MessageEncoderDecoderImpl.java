@@ -1,21 +1,27 @@
 package bgu.spl.net.api;
 
+import bgu.spl.net.api.bidi.Messages.Message;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<String> {
+public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message> {
 
 
     private byte[] bytes = new byte[1024];
     private int len = 0;
+    private int opCode = -1;
 
-    public String decodeNextByte(byte nextByte) {
-
-        return null;
+    public Message decodeNextByte(byte nextByte) {
+        if(len != 2) pushByte(nextByte);
+        if(len == 2){
+            short opCode = stringToShort(new String(bytes, 0, len, StandardCharsets.UTF_8));
+        }
+        return null; // not a full message yet
     }
 
 
-    public byte[] encode(String message){
+    public byte[] encode(Message message){
         return (message + "\n").getBytes(); //uses utf8 by default
 
     }
@@ -33,4 +39,10 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<String>
         len = 0;
         return result;
     }
+
+
+    private short stringToShort(String s){
+        return Short.parseShort(s, 2);
+    }
+
 }

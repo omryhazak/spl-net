@@ -1,8 +1,10 @@
 package bgu.spl.net.api.bidi;
 
-public class BidiMessagingProtocolImpl<T> implements BidiMessagingProtocol<T>{
+import bgu.spl.net.api.bidi.Messages.Message;
 
-    private Connections<T> connections;
+public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>{
+
+    private Connections connections;
     private int connectId;
 
 
@@ -14,8 +16,8 @@ public class BidiMessagingProtocolImpl<T> implements BidiMessagingProtocol<T>{
     }
 
     @Override
-    public void process(T message) {
-        int firstChar = ((String) message).charAt(0);
+    public void process(Message message) {
+
     }
 
     @Override

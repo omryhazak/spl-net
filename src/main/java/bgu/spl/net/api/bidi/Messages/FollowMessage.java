@@ -7,6 +7,7 @@ public class FollowMessage implements Message {
     private boolean toFollow;
     private int numOfUsers;
     private LinkedList<String> userNameList;
+    private int opCode =  4;
 
     public FollowMessage(boolean toFollow, int numOfUsers, LinkedList<String> userNameList) {
         this.toFollow = toFollow;

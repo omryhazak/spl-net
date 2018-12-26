@@ -4,6 +4,7 @@ public class LoginMessage implements Message {
 
     private String userName;
     private String password;
+    private int opCode =  2;
 
     public LoginMessage(String userName, String password) {
         this.userName = userName;
