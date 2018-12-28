@@ -1,8 +1,10 @@
 package bgu.spl.net.api.bidi.Messages;
 
+import bgu.spl.net.api.bidi.AllUsers;
+
 import java.util.LinkedList;
 
-public class FollowMessage implements Message {
+public class FollowMessage extends Message {
 
     private boolean toFollow;
     private int numOfUsers;
@@ -33,5 +35,10 @@ public class FollowMessage implements Message {
 
     public LinkedList<String> getUserNameList() {
         return userNameList;
+    }
+
+    @Override
+    public LinkedList<String> process(int connectId, AllUsers allUsers) {
+        return (allUsers.followThem(connectId, numOfUsers ,userNameList, toFollow));
     }
 }

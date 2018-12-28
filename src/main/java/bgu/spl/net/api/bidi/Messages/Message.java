@@ -1,8 +1,15 @@
 package bgu.spl.net.api.bidi.Messages;
+import bgu.spl.net.api.bidi.AllUsers;
 
-//this is a marker interface
+public abstract class Message {
 
-public interface Message {
+    //--------------------fields---------------
+    int opCode;
 
+    //-------------------methods---------------
+    public abstract Object process(int connectId, AllUsers allUsers);
 
+    public int getOpCode() {
+        return opCode;
+    }
 }

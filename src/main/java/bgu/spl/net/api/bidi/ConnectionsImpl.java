@@ -9,15 +9,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConnectionsImpl<T> implements Connections<T> {
 
+    private ConcurrentHashMap<Integer, ConnectionHandler> allSockets;
 
-    private ConcurrentHashMap<Integer ,ConnectionHandler> registeredUsersMap;
-    private ConcurrentHashMap<Integer, LinkedList<User>> followTheLeader;
+
     private AtomicInteger idCounter;
 
 
     public ConnectionsImpl(){
-        this.registeredUsersMap = new ConcurrentHashMap<>();
-        this.followTheLeader = new ConcurrentHashMap<>();
         this.idCounter = new AtomicInteger(1);
     }
 
@@ -25,9 +23,9 @@ public class ConnectionsImpl<T> implements Connections<T> {
     //checking if the given client is active and then send him the msg
     @Override
     public boolean send(int connectionId, T msg) {
-        synchronized (registeredUsersMap) {
-            if (registeredUsersMap.containsKey(connectionId)) {
-                ConnectionHandler c = registeredUsersMap.get(connectionId);
+        synchronized (allSockets) {
+            if (allSockets.containsKey(connectionId)) {
+                ConnectionHandler c = allSockets.get(connectionId);
                 c.send(msg);
                 return true;
             } else
@@ -39,8 +37,8 @@ public class ConnectionsImpl<T> implements Connections<T> {
     //looping through all active clients in the map and send the msg
     @Override
     public void broadcast(T msg) {
-        synchronized (registeredUsersMap){
-            for(ConnectionHandler c : registeredUsersMap.values()){
+        synchronized (allSockets){
+            for(ConnectionHandler c : allSockets.values()){
                 c.send(msg);
             }
         }
@@ -48,21 +46,12 @@ public class ConnectionsImpl<T> implements Connections<T> {
 
     @Override
     public void disconnect(int connectionId) {
-        registeredUsersMap.remove(connectionId);
+        allSockets.remove(connectionId);
     }
 
-    public void connect(ConnectionHandler c){
-        registeredUsersMap.put(idCounter.get(), c);
+    public void connectToSystem(ConnectionHandler c){
+        allSockets.put(idCounter.get(), c);
         idCounter.incrementAndGet();
-    }
-
-
-    //add other to the leader ID followers list
-    /**
-     *
-     **/
-    public void addToTheLeader(int leaderId, User other){
-        followTheLeader.get(leaderId).add(other);
     }
 
 }

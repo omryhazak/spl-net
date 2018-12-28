@@ -1,11 +1,17 @@
 package bgu.spl.net.api.bidi;
 
-import bgu.spl.net.api.bidi.Messages.Message;
+import bgu.spl.net.api.bidi.Messages.*;
+import bgu.spl.net.srv.User;
+
+import java.util.LinkedList;
 
 public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>{
 
     private Connections connections;
     private int connectId;
+
+    //**********where is this shit coming from???***************
+    private AllUsers allUsers;
 
 
 
@@ -18,6 +24,24 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
     @Override
     public void process(Message message) {
 
+        if (message.getClass().equals(FollowMessage.class)){
+            LinkedList<String> ans = ((FollowMessage)message).process(connectId, allUsers);
+            if (ans.size() == 0){
+                connections.send(connectId, new ErrorMessage(message.getOpCode()));
+            }
+            else{
+                connections.send(connectId, new AckMessage())
+            }
+
+        }
+        else {
+            boolean succeed = message.process(connectId, allUsers);
+            if (succeed) {
+                connections.send(connectId, new AckMessage(message.getOpCode()));
+            } else {
+                connections.send(connectId, new ErrorMessage(message.getOpCode()));
+            }
+        }
     }
 
     @Override

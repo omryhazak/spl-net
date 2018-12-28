@@ -1,10 +1,12 @@
 package bgu.spl.net.api.bidi.Messages;
 
-public class RegisterMessage implements Message {
+import bgu.spl.net.api.bidi.AllUsers;
+import bgu.spl.net.srv.User;
+
+public class RegisterMessage extends Message {
 
     private String userName;
     private String password;
-    private int opCode =  1;
 
     public RegisterMessage(String message) {
 
@@ -12,6 +14,7 @@ public class RegisterMessage implements Message {
         this.userName = toParse.substring(2, toParse.indexOf('\0'));
         toParse = toParse.substring(toParse.indexOf('\0'));
         this.password = toParse.substring(0, toParse.length()-1);
+        super.opCode = 1;
 
     }
 
@@ -21,5 +24,14 @@ public class RegisterMessage implements Message {
 
     public String getPassword() {
         return password;
+    }
+
+    @Override
+    public boolean process(int connectId, AllUsers allUsers){
+        //initializing the user object we will use later in the data base AllUsers
+        User user = new User(connectId, userName, password);
+
+        //trying to register user to system
+        return(allUsers.registerToSystem(user));
     }
 }

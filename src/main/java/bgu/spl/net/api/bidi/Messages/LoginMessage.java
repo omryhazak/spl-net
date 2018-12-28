@@ -1,6 +1,8 @@
 package bgu.spl.net.api.bidi.Messages;
 
-public class LoginMessage implements Message {
+import bgu.spl.net.api.bidi.AllUsers;
+
+public class LoginMessage extends Message {
 
     private String userName;
     private String password;
@@ -23,4 +25,8 @@ public class LoginMessage implements Message {
         return password;
     }
 
+    @Override
+    public boolean process(int connectId, AllUsers allUsers) {
+        return allUsers.logInToSystem(userName, password);
+    }
 }
