@@ -64,5 +64,5 @@ public abstract class BaseServer<T> implements Server<T> {
     }
 
     protected abstract void execute(BlockingConnectionHandler<T>  handler);
-        //creating and starting the handler wraped with thread
+
 }

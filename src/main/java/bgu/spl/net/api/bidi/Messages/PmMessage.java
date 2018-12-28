@@ -6,9 +6,13 @@ public class PmMessage implements Message {
     private String content;
     private int opCode =  6;
 
-    public PmMessage(String toSend, String content) {
-        this.toSend = toSend;
-        this.content = content;
+    public PmMessage(String message) {
+
+        String toParse = message;
+        toParse = toParse.substring(2);
+        this.toSend = toParse.substring(0, toParse.indexOf('\0'));
+        toParse = toParse.substring(0, toParse.indexOf('\0')+1);
+        this.content = toParse.substring(0, toParse.indexOf('\0'));
     }
 
     public String getToSend() {
