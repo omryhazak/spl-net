@@ -3,6 +3,7 @@ package bgu.spl.net.api.bidi;
 import bgu.spl.net.srv.ConnectionHandler;
 import bgu.spl.net.srv.User;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -103,10 +104,40 @@ public class AllUsers {
 
     public LinkedList<String> followThem(int connectId, int numOfUsers, LinkedList<String> userNameList, boolean toFollow) {
         LinkedList<String> ans = new LinkedList<>();
+
+        //checks if I am logged in
         if (isLoggedIn(connectId)) {
+
+            //if so, I try to add all the names in the list to my followThem list
             ans = registeredUsersMap.get(connectId).followThem(userNameList, toFollow);
+
+            //add me as folllower to all the
+            addAsFollower(connectId, ans);
         }
         return ans;
+    }
+
+    private void addAsFollower(int connectId, LinkedList<String> names) {
+        String nameOfMe = registeredUsersMap.get(connectId).getName();
+        int counter = names.size();
+
+        while (counter > 0) {
+            //goes over all my list
+            for (Integer key : registeredUsersMap.keySet()) {
+
+                //if my list of names contains users name
+                if (names.contains(registeredUsersMap.get(key).getName())) {
+
+                    //add me to him as a follower
+                    registeredUsersMap.get(key).addFollower(nameOfMe);
+                    counter = counter - 1;
+                }
+            }
+        }
+    }
+
+    public LinkedList<String> returnUserList(){
+        Arrays a = registeredUsersMap.keySet();
     }
 
 

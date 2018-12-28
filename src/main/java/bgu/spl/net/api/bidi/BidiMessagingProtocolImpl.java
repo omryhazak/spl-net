@@ -24,18 +24,19 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
     @Override
     public void process(Message message) {
 
+        //if it is follow message
         if (message.getClass().equals(FollowMessage.class)){
             LinkedList<String> ans = ((FollowMessage)message).process(connectId, allUsers);
             if (ans.size() == 0){
                 connections.send(connectId, new ErrorMessage(message.getOpCode()));
             }
             else{
-                connections.send(connectId, new AckMessage())
+                connections.send(connectId, new AckMessage(message.getOpCode(), ans));
             }
 
         }
         else {
-            boolean succeed = message.process(connectId, allUsers);
+            boolean succeed = (boolean)message.process(connectId, allUsers);
             if (succeed) {
                 connections.send(connectId, new AckMessage(message.getOpCode()));
             } else {

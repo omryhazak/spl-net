@@ -1,8 +1,10 @@
 package bgu.spl.net.api.bidi.Messages;
 
+import bgu.spl.net.api.bidi.AllUsers;
+
 import java.util.LinkedList;
 
-public class PostMessage implements Message {
+public class PostMessage extends Message {
 
     private String content;
     private LinkedList<String> usersNameToSend;
@@ -43,5 +45,10 @@ public class PostMessage implements Message {
 
     public LinkedList<String> getUsersNameToSend() {
         return usersNameToSend;
+    }
+
+    @Override
+    public Boolean process(int connectId, AllUsers allUsers) {
+
     }
 }

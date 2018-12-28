@@ -44,7 +44,6 @@ public class User {
     }
 
     public LinkedList<String> followThem(LinkedList<String> userNameList, boolean toFollow){
-
         //counter will count our "succeeds"
         LinkedList<String> ans = new LinkedList<>();
 
@@ -82,12 +81,17 @@ public class User {
         return ans;
     }
 
-    private boolean checkIfAlreadyFollowing(String name){
 
+    private boolean checkIfAlreadyFollowing(String name){
         //function that goes over the list I follow and checks if the name is in the list
         for (String name2 : followsThem){
             if (name2.equals(name)) return true;
         }
         return false;
+    }
+
+
+    public void addFollower(String name){
+        followingMe.add(name);
     }
 }

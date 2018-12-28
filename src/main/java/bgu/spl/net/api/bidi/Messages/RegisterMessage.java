@@ -27,7 +27,7 @@ public class RegisterMessage extends Message {
     }
 
     @Override
-    public boolean process(int connectId, AllUsers allUsers){
+    public Boolean process(int connectId, AllUsers allUsers){
         //initializing the user object we will use later in the data base AllUsers
         User user = new User(connectId, userName, password);
 
