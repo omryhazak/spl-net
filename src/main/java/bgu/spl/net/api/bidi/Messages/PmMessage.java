@@ -1,6 +1,8 @@
 package bgu.spl.net.api.bidi.Messages;
 
-public class PmMessage implements Message {
+import bgu.spl.net.api.bidi.AllUsers;
+
+public class PmMessage extends Message {
 
     private String toSend;
     private String content;
@@ -21,5 +23,10 @@ public class PmMessage implements Message {
 
     public String getContent() {
         return content;
+    }
+
+    @Override
+    public Integer process(int connectId, AllUsers allUsers) {
+        return allUsers.sendPM(connectId, toSend);
     }
 }

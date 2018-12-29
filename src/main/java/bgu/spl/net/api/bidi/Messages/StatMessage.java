@@ -1,6 +1,8 @@
 package bgu.spl.net.api.bidi.Messages;
 
-public class StatMessage implements Message {
+import bgu.spl.net.api.bidi.AllUsers;
+
+public class StatMessage extends Message {
 
     private String userName;
     private int opCode =  8;
@@ -14,5 +16,10 @@ public class StatMessage implements Message {
 
     public String getUserName() {
         return userName;
+    }
+
+    @Override
+    public int[] process(int connectId, AllUsers allUsers) {
+        return allUsers.getStatOfUser(userName, connectId);
     }
 }

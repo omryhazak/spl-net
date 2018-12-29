@@ -2,29 +2,38 @@ package bgu.spl.net.srv;
 
 import com.sun.tools.internal.xjc.reader.xmlschema.bindinfo.BIConversion;
 
+import java.util.Collection;
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class User {
 
-    private final int id;
+    private int connectId;
+    private int numOfPosts = 0;
     private String name;
     private String password;
     private boolean loggedIn;
     private LinkedList<String> followsThem;
     private LinkedList<String> followingMe;
+    private ConcurrentLinkedQueue<String> messages;
 
     public User(int id, String name, String password) {
-        this.id = id;
+        this.connectId = id;
         this.name = name;
         this.password = password;
         loggedIn = false;
         followsThem = new LinkedList<>();
         followingMe = new LinkedList<>();
+        messages = new ConcurrentLinkedQueue<>();
     }
 
-    public int getId() {
-        return id;
+    public int getConnectId() {
+        return connectId;
+    }
+
+    public void setConnectId(int connectId) {
+        this.connectId = connectId;
     }
 
     public String getName() {
@@ -43,8 +52,19 @@ public class User {
         return loggedIn;
     }
 
+    public int getNumOfPosts() {
+        return numOfPosts;
+    }
+
+    public int numOfFollowers(){
+        return this.followingMe.size();
+    }
+    public int numOfFollowing(){
+        return this.followsThem.size();
+    }
+
     public LinkedList<String> followThem(LinkedList<String> userNameList, boolean toFollow){
-        //counter will count our "succeeds"
+        //counter list will count our "succeeds" and save them
         LinkedList<String> ans = new LinkedList<>();
 
         //if we need to start follow the names in the list
@@ -53,10 +73,10 @@ public class User {
             //so go over the names in the list
             for (String name : userNameList) {
 
-                //for each name check if we already follow him
+                //for each name check if we dont follow him yet
                 if (!checkIfAlreadyFollowing(name)) {
 
-                    //if not, start follow him
+                    //if so, start follow him
                     followsThem.add(name);
                     ans.add(name);
                 }
@@ -69,7 +89,7 @@ public class User {
             //go over the names in the list
             for(String name : userNameList){
 
-                //for each name check if we dont follow him
+                //for each name check if we follow him
                 if(checkIfAlreadyFollowing(name)){
 
                     //if so, unfollow him
@@ -94,4 +114,22 @@ public class User {
     public void addFollower(String name){
         followingMe.add(name);
     }
+
+    public LinkedList<String> getFollowingMe() {
+        return followingMe;
+    }
+
+    public void addMessage(String message) {
+        messages.add(message);
+    }
+
+    public ConcurrentLinkedQueue<String> getMessages() {
+        return messages;
+    }
+
+    public void setNumOfPosts() {
+        this.numOfPosts = numOfPosts + 1;
+    }
+
+
 }

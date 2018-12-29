@@ -10,7 +10,7 @@ public class LogoutMessage extends Message {
     }
 
     @Override
-    public boolean process(int connectId, AllUsers allUsers) {
+    public Boolean process(int connectId, AllUsers allUsers) {
         return allUsers.logOut(connectId);
     }
 }

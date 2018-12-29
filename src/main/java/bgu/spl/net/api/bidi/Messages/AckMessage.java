@@ -1,15 +1,20 @@
 package bgu.spl.net.api.bidi.Messages;
 
+import bgu.spl.net.api.bidi.AllUsers;
+
 import java.util.LinkedList;
 
-public class AckMessage {
+public class AckMessage extends Message {
 
     //--------------------fields--------------
 
     private int opCode = 10;
     private int messageOpCode;
     private int numOfUsers = 0;
-    private LinkedList<String> userNameList = new LinkedList<>();
+    private int numOfPosts = 0;
+    private int numOfFollowers = 0;
+    private int numOfFollowing = 0;
+    private String userNameList = "";
 
     //-------------------constructors for each option----------
 
@@ -18,13 +23,29 @@ public class AckMessage {
         this.messageOpCode = messageOpCode;
     }
 
-    //constructor for Follow
-    public AckMessage(int messageOpCode, LinkedList userNameList){
+    //constructor for Follow and UserList
+    public AckMessage(int messageOpCode, LinkedList<String> userNameList){
         this.messageOpCode = messageOpCode;
-        this.userNameList.addAll(userNameList);
         numOfUsers = userNameList.size();
+        for (String s : userNameList){
+            this.userNameList = this.userNameList + s + '\0';
+        }
+    }
+
+    //constructor for Stat
+    public AckMessage(int opCode, int numOfPosts, int numOfFollowers, int numOfFollowing){
+        this.opCode = opCode;
+        this.numOfPosts = numOfPosts;
+        this.numOfFollowers = numOfFollowers;
+        this.numOfFollowing = numOfFollowing;
     }
 
     //------------------methods---------------
+
+
+    @Override
+    public Object process(int connectId, AllUsers allUsers) {
+        return null;
+    }
 }
 

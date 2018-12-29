@@ -48,7 +48,7 @@ public class PostMessage extends Message {
     }
 
     @Override
-    public Boolean process(int connectId, AllUsers allUsers) {
-
+    public LinkedList<Integer> process(int connectId, AllUsers allUsers) {
+        return allUsers.postMessage(connectId, content, usersNameToSend);
     }
 }

@@ -2,6 +2,9 @@ package bgu.spl.net.api.bidi.Messages;
 
 import bgu.spl.net.api.bidi.AllUsers;
 
+import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 public class LoginMessage extends Message {
 
     private String userName;
@@ -26,7 +29,7 @@ public class LoginMessage extends Message {
     }
 
     @Override
-    public Boolean process(int connectId, AllUsers allUsers) {
-        return allUsers.logInToSystem(userName, password);
+    public ConcurrentLinkedQueue<String> process(int connectId, AllUsers allUsers) {
+        return allUsers.logInToSystem(userName, password, connectId);
     }
 }
