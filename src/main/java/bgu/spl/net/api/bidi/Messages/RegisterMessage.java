@@ -8,13 +8,10 @@ public class RegisterMessage extends Message {
     private String userName;
     private String password;
 
-    public RegisterMessage(String message) {
+    public RegisterMessage(String userName, String password) {
 
-        String toParse = message;                                              //getting the complete message as string
-        this.userName = toParse.substring(2, toParse.indexOf('\0'));
-        toParse = toParse.substring(toParse.indexOf('\0'));
-        this.password = toParse.substring(0, toParse.length()-1);
-        super.opCode = 1;
+        this.userName = userName;
+        this.password = password;
 
     }
 

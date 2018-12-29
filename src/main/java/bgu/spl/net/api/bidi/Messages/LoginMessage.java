@@ -11,12 +11,10 @@ public class LoginMessage extends Message {
     private String password;
     private int opCode =  2;
 
-    public LoginMessage(String message) {
+    public LoginMessage(String userName, String password) {
 
-        String toParse = message;
-        this.userName = toParse.substring(2, toParse.indexOf('\0'));
-        toParse = toParse.substring(toParse.indexOf('\0'));
-        this.password = toParse.substring(0, toParse.length()-1);
+        this.userName = userName;
+        this.password = password;
 
     }
 

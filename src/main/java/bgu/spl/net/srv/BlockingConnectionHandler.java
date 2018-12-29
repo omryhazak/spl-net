@@ -2,12 +2,14 @@ package bgu.spl.net.srv;
 
 import bgu.spl.net.api.MessageEncoderDecoder;
 import bgu.spl.net.api.bidi.BidiMessagingProtocol;
+import bgu.spl.net.api.bidi.Connections;
 import bgu.spl.net.api.bidi.Messages.Message;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.sql.Connection;
 
 
 public class BlockingConnectionHandler<Message> implements Runnable, ConnectionHandler<Message> {
@@ -18,11 +20,15 @@ public class BlockingConnectionHandler<Message> implements Runnable, ConnectionH
     private BufferedInputStream in;
     private BufferedOutputStream out;
     private volatile boolean connected = true;
+    private int connectionId;
+    private Connections connections;
 
-    public BlockingConnectionHandler(Socket sock, MessageEncoderDecoder<Message> reader, BidiMessagingProtocol<Message> protocol) {
+    public BlockingConnectionHandler(Socket sock, MessageEncoderDecoder<Message> reader, BidiMessagingProtocol<Message> protocol, int connectionId, Connections connections) {
         this.sock = sock;
         this.encdec = reader;
         this.protocol = protocol;
+        this.connectionId = connectionId;
+        this.connections = connections;
     }
 
     @Override
@@ -32,13 +38,11 @@ public class BlockingConnectionHandler<Message> implements Runnable, ConnectionH
 
             in = new BufferedInputStream(sock.getInputStream());
 
-            //******************should be here somehow???????*********************
-            protocol.start(connectionId,connection);
+            protocol.start(connectionId,connections);
 
             while (!protocol.shouldTerminate() && connected && (read = in.read()) >= 0) {
                 Message nextMessage = encdec.decodeNextByte((byte) read);
                 if (nextMessage != null) {
-
                     protocol.process(nextMessage);
                 }
             }
@@ -59,13 +63,12 @@ public class BlockingConnectionHandler<Message> implements Runnable, ConnectionH
     public void send(Message msg) {
         //an ack message needs to be sent here
         //also convert message to string
-//        try {
-//            out = new BufferedOutputStream(this.sock.getOutputStream());
-//            out.write(encdec.encode(msg));
-//            out.flush();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
+        try {
+            out = new BufferedOutputStream(this.sock.getOutputStream());
+            out.write(encdec.encode(msg));
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

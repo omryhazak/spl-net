@@ -9,16 +9,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConnectionsImpl<T> implements Connections<T> {
 
+    //------------------fields---------------------
     private ConcurrentHashMap<Integer, ConnectionHandler> allSockets;
 
 
-    private AtomicInteger idCounter;
+    //------------------constructor----------------
 
-
-    public ConnectionsImpl(){
-        this.idCounter = new AtomicInteger(1);
+    public ConnectionsImpl() {
+        allSockets = new ConcurrentHashMap<>();
     }
 
+    //------------------methods--------------------
 
     //checking if the given client is active and then send him the msg
     @Override
@@ -37,8 +38,8 @@ public class ConnectionsImpl<T> implements Connections<T> {
     //looping through all active clients in the map and send the msg
     @Override
     public void broadcast(T msg) {
-        synchronized (allSockets){
-            for(ConnectionHandler c : allSockets.values()){
+        synchronized (allSockets) {
+            for (ConnectionHandler c : allSockets.values()) {
                 c.send(msg);
             }
         }
@@ -49,9 +50,8 @@ public class ConnectionsImpl<T> implements Connections<T> {
         allSockets.remove(connectionId);
     }
 
-    public void connectToSystem(ConnectionHandler c){
-        allSockets.put(idCounter.get(), c);
-        idCounter.incrementAndGet();
+    public void connectToSystem(ConnectionHandler c, int connectionId) {
+        allSockets.put(connectionId, c);
     }
 
 }

@@ -9,6 +9,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public abstract class BaseServer<T> implements Server<T> {
@@ -18,6 +19,7 @@ public abstract class BaseServer<T> implements Server<T> {
     private final Supplier<MessageEncoderDecoder<T>> encdecFactory;
     private ServerSocket sock;
     private ConnectionsImpl connections;
+    private int counter;
 
     public BaseServer(
             int port,
@@ -29,6 +31,7 @@ public abstract class BaseServer<T> implements Server<T> {
         this.encdecFactory = encdecFactory;
 		this.sock = null;
 		this.connections = new ConnectionsImpl();
+		counter = 1;
     }
 
     @Override
@@ -46,8 +49,12 @@ public abstract class BaseServer<T> implements Server<T> {
                 BlockingConnectionHandler<T> handler = new BlockingConnectionHandler<>(
                         clientSock,
                         encdecFactory.get(),
-                        protocolFactory.get());
-                connections.connectToSystem(handler);
+                        protocolFactory.get(),
+                        counter,
+                        connections
+                        );
+                connections.connectToSystem(handler, counter);
+                counter = counter + 1;
                 execute(handler);
             }
         } catch (IOException ex) {

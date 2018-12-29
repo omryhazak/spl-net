@@ -13,51 +13,52 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
     private byte[] bytes = new byte[1024];
     private int len = 0;
     private short opCode = -1;
+    private int zero;
 
     public Message decodeNextByte(byte nextByte) {
-        if(nextByte == '\n'){
-
-
-            //sending the message as string to the specific message object.
-            //the message object constructor parses the popString
-            switch (opCode){
-                case(1):
-                    //create new register
-                    return new RegisterMessage(popString());
-                case (2):
-                    //create new login
-                    return new LoginMessage(popString());
-                case (3):
-                    //create new logout
-                    popString(); //empty the bytes array manually
-                    return new LogoutMessage();
-                case (4):
-                    //create new follow
-                    return new FollowMessage(popString());
-                case (5):
-                    //create new post
-                    return new PostMessage(popString());
-                case (6):
-                    //create new pm
-                    return new PmMessage(popString());
-                case (7):
-                    //create new userlist
-                    popString(); //empty the bytes array manually
-                    return new UserlistMessage();
-                case (8):
-                    //create new stat
-                    return new StatMessage(popString());
-
-            }
-        }else {
-            if (len != 2) pushByte(nextByte);
-            if (len == 2) {
-                this.opCode = stringToShort(new String(bytes, 0, len, StandardCharsets.UTF_8));
-            }
+        while (opCode==-1) {
+            pushByte(nextByte);
+            if(len==2) this.opCode = stringToShort(popString());
         }
 
-        return null; // not a full message yet
+        //register message
+        if(opCode==1){
+            parseRegister(nextByte);
+        }
+
+        //login message
+        else if(opCode==2){
+            parseLogin(nextByte);
+        }
+
+        //logout message
+        else if(opCode==3){
+            return new LogoutMessage();
+        }
+
+        //follow message
+        else if(opCode==4){
+            boolean toFollow;
+            int numOfUsers;
+            if(zero==0) {
+                if ((int)nextByte == 1) {
+                    toFollow = true;
+                    zero++;
+                } else {
+                    toFollow = false;
+                    zero++;
+                }
+
+            }
+            if(zero==1){
+                while(len<2){
+                    pushByte(nextByte);
+                }
+            }
+        }
+        return null;
     }
+
 
 
     public byte[] encode(Message message){
@@ -84,8 +85,26 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         return Short.parseShort(s, 16);
     }
 
+    //register parser
+    private RegisterMessage parseRegister(byte nextByte){
+        while (zero == 0 && nextByte != '\0'){
+            pushByte(nextByte);
+        }
+        String userName = popString();
+        while (zero == 1 && nextByte != '\0'){
+            pushByte(nextByte);
+        }
+        return new RegisterMessage(userName, popString());
+    }
 
-
+    private LoginMessage parseLogin(byte nextByte){
+        while (zero == 0 && nextByte != '\0'){
+            pushByte(nextByte);
+        }
+        String userName = popString();
+        while (zero == 1 && nextByte != '\0'){
+            pushByte(nextByte);
+        }
+        return new LoginMessage(userName, popString());
+    }
 }
-
-
