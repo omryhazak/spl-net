@@ -14,21 +14,26 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
     private int len = 0;
     private short opCode = -1;
     private int zero;
+    private int numOfUsers;
+    private boolean toFollow;
 
     public Message decodeNextByte(byte nextByte) {
+
+        //getting enough bytes to get the opCode
         while (opCode==-1) {
             pushByte(nextByte);
-            if(len==2) this.opCode = stringToShort(popString());
+            if(len==2)
+                this.opCode = stringToShort(popString());
         }
 
         //register message
         if(opCode==1){
-            parseRegister(nextByte);
+            RegisterAndLoginParser(RegisterMessage.class ,nextByte);
         }
 
         //login message
         else if(opCode==2){
-            parseLogin(nextByte);
+            RegisterAndLoginParser(LoginMessage.class ,nextByte);
         }
 
         //logout message
@@ -38,22 +43,24 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
 
         //follow message
         else if(opCode==4){
-            boolean toFollow;
-            int numOfUsers;
             if(zero==0) {
-                if ((int)nextByte == 1) {
-                    toFollow = true;
+                if ((short)nextByte == 1) {
+                    this.toFollow = true;
                     zero++;
                 } else {
-                    toFollow = false;
+                    this.toFollow = false;
                     zero++;
                 }
-
+                return null;
             }
             if(zero==1){
                 while(len<2){
                     pushByte(nextByte);
+                    break;
                 }
+            }if(len==2){
+                this.numOfUsers = Integer.parseInt(popString());
+                zero++;
             }
         }
         return null;
@@ -85,8 +92,8 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         return Short.parseShort(s, 16);
     }
 
-    //register parser
-    private RegisterMessage parseRegister(byte nextByte){
+    //register and login parser
+    private Message RegisterAndLoginParser(Class<? extends Message> type, byte nextByte){
         while (zero == 0 && nextByte != '\0'){
             pushByte(nextByte);
         }
@@ -94,17 +101,10 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         while (zero == 1 && nextByte != '\0'){
             pushByte(nextByte);
         }
-        return new RegisterMessage(userName, popString());
+        if(type == RegisterMessage.class)
+            return new RegisterMessage(userName, popString());
+        else return new LoginMessage(userName, popString());
     }
 
-    private LoginMessage parseLogin(byte nextByte){
-        while (zero == 0 && nextByte != '\0'){
-            pushByte(nextByte);
-        }
-        String userName = popString();
-        while (zero == 1 && nextByte != '\0'){
-            pushByte(nextByte);
-        }
-        return new LoginMessage(userName, popString());
-    }
+
 }
