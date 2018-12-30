@@ -4,17 +4,26 @@ import bgu.spl.net.api.bidi.AllUsers;
 
 public class ErrorMessage extends Message {
 
-    private int opCode = 11;
+    private short opCode = 11;
     private int messageOpCode;
 
     //-------------------constructor----------
 
-    public ErrorMessage(int messageOpCode) {
+    public ErrorMessage(short messageOpCode) {
         this.messageOpCode = messageOpCode;
     }
 
     //------------------methods---------------
 
+
+    @Override
+    public short getOpCode() {
+        return opCode;
+    }
+
+    public int getMessageOpCode() {
+        return messageOpCode;
+    }
 
     @Override
     public Object process(int connectId, AllUsers allUsers) {

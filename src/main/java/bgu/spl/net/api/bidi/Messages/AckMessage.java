@@ -8,7 +8,7 @@ public class AckMessage extends Message {
 
     //--------------------fields--------------
 
-    private int opCode = 10;
+    private short opCode = 10;
     private int messageOpCode;
     private int numOfUsers = 0;
     private int numOfPosts = 0;
@@ -19,7 +19,7 @@ public class AckMessage extends Message {
     //-------------------constructors for each option----------
 
     //constructor for Register, Login
-    public AckMessage(int messageOpCode) {
+    public AckMessage(short messageOpCode) {
         this.messageOpCode = messageOpCode;
     }
 
@@ -33,7 +33,7 @@ public class AckMessage extends Message {
     }
 
     //constructor for Stat
-    public AckMessage(int opCode, int numOfPosts, int numOfFollowers, int numOfFollowing){
+    public AckMessage(short opCode, int numOfPosts, int numOfFollowers, int numOfFollowing){
         this.opCode = opCode;
         this.numOfPosts = numOfPosts;
         this.numOfFollowers = numOfFollowers;

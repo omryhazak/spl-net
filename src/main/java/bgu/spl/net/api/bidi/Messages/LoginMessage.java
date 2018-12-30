@@ -9,13 +9,18 @@ public class LoginMessage extends Message {
 
     private String userName;
     private String password;
-    private int opCode =  2;
+    private short opCode =  2;
 
     public LoginMessage(String userName, String password) {
 
         this.userName = userName;
         this.password = password;
 
+    }
+
+    @Override
+    public short getOpCode() {
+        return opCode;
     }
 
     public String getUserName() {

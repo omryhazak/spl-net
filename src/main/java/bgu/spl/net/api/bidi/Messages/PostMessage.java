@@ -8,13 +8,18 @@ public class PostMessage extends Message {
 
     private String content;
     private LinkedList<String> usersNameToSend;
-    private int opCode =  5;
+    private short opCode =  5;
 
     public PostMessage(String content, LinkedList<String> usersNameToSend) {
 
         this.content = content;
         this.usersNameToSend = usersNameToSend;
 
+    }
+
+    @Override
+    public short getOpCode() {
+        return opCode;
     }
 
     public String getContent() {

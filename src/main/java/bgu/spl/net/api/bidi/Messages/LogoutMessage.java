@@ -4,9 +4,15 @@ import bgu.spl.net.api.bidi.AllUsers;
 
 public class LogoutMessage extends Message {
 
-    private int opCode =  3;
+    private short opCode =  3;
 
     public LogoutMessage() {
+    }
+
+
+    @Override
+    public short getOpCode() {
+        return opCode;
     }
 
     @Override

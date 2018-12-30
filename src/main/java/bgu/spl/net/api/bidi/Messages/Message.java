@@ -4,12 +4,12 @@ import bgu.spl.net.api.bidi.AllUsers;
 public abstract class Message {
 
     //--------------------fields---------------
-    int opCode;
+    short opCode;
 
     //-------------------methods---------------
     public abstract Object process(int connectId, AllUsers allUsers);
 
-    public int getOpCode() {
+    public short getOpCode() {
         return opCode;
     }
 }

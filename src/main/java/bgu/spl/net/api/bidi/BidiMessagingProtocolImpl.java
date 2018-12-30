@@ -48,7 +48,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
             //if we can log in,
             else {
                 while (!ans.isEmpty()) {
-                    connections.send(connectId, new NotificationMessage(ans.poll()));
+                    connections.send(connectId, new NotificationMessage(ans.poll(), message.getOpCode()));
                 }
             }
 
@@ -62,7 +62,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
             }
             else {
                 for (Integer i : ans) {
-                    connections.send(i, new NotificationMessage(((PostMessage) message).getContent()));
+                    connections.send(i, new NotificationMessage(((PostMessage) message).getContent(), message.getOpCode()));
                 }
             }
         }

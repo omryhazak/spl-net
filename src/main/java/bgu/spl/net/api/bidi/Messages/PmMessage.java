@@ -6,7 +6,7 @@ public class PmMessage extends Message {
 
     private String toSend;
     private String content;
-    private int opCode =  6;
+    private short opCode =  6;
 
     public PmMessage(String toSend, String content) {
 
@@ -14,6 +14,11 @@ public class PmMessage extends Message {
         this.content = content;
 
         }
+
+    @Override
+    public short getOpCode() {
+        return opCode;
+    }
 
     public String getToSend() {
         return toSend;

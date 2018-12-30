@@ -9,12 +9,17 @@ public class FollowMessage extends Message {
     private boolean toFollow;
     private int numOfUsers;
     private LinkedList<String> userNameList;
-    private int opCode =  4;
+    private short opCode =  4;
 
     public FollowMessage(boolean toFollow, int numOfUsers, LinkedList<String> userNameList) {
         this.numOfUsers = numOfUsers;
         this.toFollow = toFollow;
         this.userNameList = userNameList;
+    }
+
+    @Override
+    public short getOpCode() {
+        return opCode;
     }
 
     public boolean isToFollow() {

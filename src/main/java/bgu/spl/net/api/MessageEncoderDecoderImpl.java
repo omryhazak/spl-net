@@ -17,9 +17,10 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
     private int counterForFollow=0;
     private boolean toFollow;
     private boolean followLoop =true;
-    private String userNameForRegisterParser = " ";
+    private String userNameForRegisterParser = "";
     private LinkedList<String> usersToFollow = new LinkedList<>();
     private LinkedList<String> usersToSend = new LinkedList<>();
+
 
     public Message decodeNextByte(byte nextByte) {
 
@@ -74,8 +75,14 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
 
 
     public byte[] encode(Message message){
-        return (message + "\n").getBytes(); //uses utf8 by default
+        switch (message.getOpCode()){
+            case(9):
+                short op = 9;
+                String toBytes = Short.toString(op);
 
+        }
+
+        return null;
     }
 
     private void pushByte(byte nextByte) {
@@ -132,6 +139,8 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         }
         return null;
     }
+
+    //follow message parser
     private Message FollowParser(byte nextByte){
         while(followLoop) /* the while helps us break the decodeNextByte when needed*/ {
 
@@ -184,6 +193,7 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         return null;
     }
 
+    //post message parser
     private Message postParser(byte nextByte) {
 
         //get all the content
