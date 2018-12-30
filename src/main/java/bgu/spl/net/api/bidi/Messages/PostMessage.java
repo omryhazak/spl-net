@@ -10,32 +10,10 @@ public class PostMessage extends Message {
     private LinkedList<String> usersNameToSend;
     private int opCode =  5;
 
-    public PostMessage(String message) {
+    public PostMessage(String content, LinkedList<String> usersNameToSend) {
 
-        this.usersNameToSend = new LinkedList<>();
-
-        String toParse = message;
-        toParse = toParse.substring(2);
-        this.content = toParse.substring(0, toParse.length()-1);
-        if(toParse.indexOf('@')==-1){
-            this.usersNameToSend = null;
-        }
-        else{
-            StringBuffer buff = new StringBuffer(toParse);
-            String tmp = toParse;
-            while (buff.indexOf("@") != -1){
-                String toAdd ;
-                int i =  buff.indexOf("@")+1;
-                int j = buff.indexOf("@")+1;
-                while (tmp.charAt(j) != ' '){
-                    j++;
-                }
-                toAdd = tmp.substring(i,j);
-                this.usersNameToSend.add(toAdd);
-            }
-
-
-        }
+        this.content = content;
+        this.usersNameToSend = usersNameToSend;
 
     }
 
