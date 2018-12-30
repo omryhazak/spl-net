@@ -24,6 +24,7 @@ public class AllUsers {
     // ---------------constructor-------------------------------
 
     public AllUsers() {
+
         registeredUsersMap = new ConcurrentHashMap<>();
     }
 
