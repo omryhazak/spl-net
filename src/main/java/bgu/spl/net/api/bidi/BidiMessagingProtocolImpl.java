@@ -1,8 +1,7 @@
 package bgu.spl.net.api.bidi;
 
+import bgu.spl.net.api.Pair;
 import bgu.spl.net.api.bidi.Messages.*;
-import bgu.spl.net.srv.User;
-import sun.awt.image.ImageWatched;
 
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -39,7 +38,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         //if it is Login message
         else if (message.getClass().equals(LoginMessage.class)){
-            ConcurrentLinkedQueue<String> ans = (ConcurrentLinkedQueue<String>) message.process(connectId, allUsers);
+            ConcurrentLinkedQueue<Pair> ans = (ConcurrentLinkedQueue<Pair>) message.process(connectId, allUsers);
 
             //if we cant log in
             if (ans == null){
@@ -47,8 +46,10 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
             }
             //if we can log in,
             else {
+                connections.send(connectId, new AckMessage(message.getOpCode()));
                 while (!ans.isEmpty()) {
-                    connections.send(connectId, new NotificationMessage(ans.poll(), message.getOpCode()));
+                    Pair p = ans.poll();
+                    connections.send(connectId, new NotificationMessage(allUsers.findUser(p.getFirst()).getName(), p.getSecond(), message.getOpCode()));
                 }
             }
 
@@ -56,13 +57,16 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         //if it is Post message
         else if (message.getClass().equals(PostMessage.class)){
+
+            //get the id of the user we need to post to
             LinkedList<Integer> ans = (LinkedList<Integer>)message.process(connectId, allUsers);
             if(ans.size()!=0 && ans.getFirst()==-1){
                 connections.send(connectId, new ErrorMessage(message.getOpCode()));
             }
             else {
+                connections.send(connectId, new AckMessage(message.getOpCode()));
                 for (Integer i : ans) {
-                    connections.send(i, new NotificationMessage(((PostMessage) message).getContent(), message.getOpCode()));
+                    connections.send(i, new NotificationMessage(allUsers.findUser(connectId).getName(), ((PostMessage) message).getContent(), message.getOpCode()));
                 }
             }
         }
@@ -81,6 +85,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
         else if (message.getClass().equals(PmMessage.class)){
             int ans = (int)message.process(connectId, allUsers);
             if (ans != -1){
+                connections.send(connectId, new AckMessage(message.getOpCode()));
                 connections.send(ans, ((PmMessage) message).getContent());
             }
             else{
@@ -89,7 +94,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         }
 
-        //if it is Register or Logut or PM message
+        //if it is Register or Logut message
         else {
             boolean succeed = (boolean)message.process(connectId, allUsers);
             if (succeed) {

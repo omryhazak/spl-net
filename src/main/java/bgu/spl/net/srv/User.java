@@ -1,11 +1,10 @@
 package bgu.spl.net.srv;
 
-import com.sun.tools.internal.xjc.reader.xmlschema.bindinfo.BIConversion;
+import bgu.spl.net.api.Pair;
 
-import java.util.Collection;
 import java.util.LinkedList;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
 
 public class User {
 
@@ -16,7 +15,7 @@ public class User {
     private boolean loggedIn;
     private LinkedList<String> followsThem;
     private LinkedList<String> followingMe;
-    private ConcurrentLinkedQueue<String> messages;
+    private ConcurrentLinkedQueue<Pair> messages;
 
     public User(int id, String name, String password) {
         this.connectId = id;
@@ -119,11 +118,12 @@ public class User {
         return followingMe;
     }
 
-    public void addMessage(String message) {
-        messages.add(message);
+    public void addMessage(int userId, String message) {
+
+        messages.add(new Pair(userId, message));
     }
 
-    public ConcurrentLinkedQueue<String> getMessages() {
+    public ConcurrentLinkedQueue<Pair> getMessages() {
         return messages;
     }
 
