@@ -29,8 +29,10 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         //getting enough bytes to get the opCode
         while (opCode==-1) {
             pushByte(nextByte);
-            if(len==2)
-                this.opCode = stringToShort(popString());
+            if(len==2){
+                this.opCode = bytesToShort(Arrays.copyOfRange(this.bytes, 0, 2));
+                popString();
+            }
         }
 
         //register message
@@ -75,7 +77,6 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         return null;
     }
 
-
     public byte[] encode(Message message){
         this.bytesEncoder = new byte[1024];
         switch (message.getOpCode()){
@@ -86,6 +87,10 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
             case(10):
                 //ack message
                 return ackEncoder(message);
+            case(11):
+                //error message
+                return errorEncoder(message);
+
         }
 
         return null;
@@ -99,6 +104,7 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         bytes[len++] = nextByte;
     }
 
+    //pushByte for the encode bytes array
     private void pushByteEncode(byte nextByte){
         if(lenEncoder >= bytesEncoder.length){
             bytesEncoder = Arrays.copyOf(bytesEncoder, lenEncoder*2);
@@ -107,15 +113,17 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         bytesEncoder[lenEncoder++] = nextByte;
     }
 
+    //push a full array to the encoder bytes array, using the pushByteEncode
+    private void pushArrayOfBytes(byte[] b){
+        for (int i = 0; i< b.length; i++){
+            pushByteEncode(b[i]);
+        }
+    }
+
     private String popString(){
         String result = new String(bytes, 0, len, StandardCharsets.UTF_8);
         len = 0;
         return result;
-    }
-
-
-    private short stringToShort(String s){
-        return Short.parseShort(s, 16);
     }
 
     //register, login, Pm and stat parser
@@ -126,9 +134,9 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
                 pushByte(nextByte);
                 break;
             }
-            if(zero == 0){
+            if (zero == 0) {
                 this.userNameForRegisterParser = popString();
-                if(type == StatMessage.class){
+                if (type == StatMessage.class) {
                     this.zero = 0;
                     return new StatMessage(this.userNameForRegisterParser);
                 }
@@ -141,8 +149,13 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
                 pushByte(nextByte);
                 break;
             }
-            if(zero ==1){
+            if (zero == 1) {
+
+                //reset the right field for the next decoding
                 zero = 0;
+                this.opCode = -1;
+
+                //return the message according to type argument
                 if (type == RegisterMessage.class)
                     return new RegisterMessage(this.userNameForRegisterParser, popString());
                 else if (type == LoginMessage.class) {
@@ -159,6 +172,7 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         while(followLoop) /* the while helps us break the decodeNextByte when needed*/ {
 
             //setting the boolean toFollow
+            //and do not push the byte to the array
             if (counterForFollow == 0) {
                 if ((short) nextByte == 1) {
                     this.toFollow = true;
@@ -177,8 +191,10 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
             }
 
             //setting the num of users
+            //and empty the bytes array
             else if (counterForFollow == 1 && len == 2) {
-                this.numOfUsers = Integer.parseInt(popString());
+                this.numOfUsers = (int) bytesToShort(Arrays.copyOfRange(this.bytes, 0, len));
+                popString();
                 counterForFollow++;
                 break;
             }
@@ -194,7 +210,7 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
                 }
                 break;
 
-             //return the message with all arguments and reset the right fields
+             //return the message with all arguments and reset the right fields for the next decoding
             }else if(zero == numOfUsers){
                 FollowMessage f = new FollowMessage(this.toFollow, this.numOfUsers, this.usersToFollow);
                 this.usersToFollow = new LinkedList<>();
@@ -262,6 +278,7 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         return toReturn;
     }
 
+    //ack encoder
     private byte[] ackEncoder(Message message){
 //if a general ack message is needed
         if(((AckMessage)message).getMessageOpCode()==1 || ((AckMessage)message).getMessageOpCode()==2 || ((AckMessage)message).getMessageOpCode()== 3
@@ -310,12 +327,17 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         }
     }
 
+    //eror encoder
+    private byte[] errorEncoder(Message message){
+        pushArrayOfBytes(shortToBytes(message.getOpCode()));
+        pushArrayOfBytes(shortToBytes(((ErrorMessage)message).getMessageOpCode()));
 
-    private void pushArrayOfBytes(byte[] b){
-        for (int i = 0; i< b.length; i++){
-            pushByteEncode(b[i]);
-        }
+        //reset the right fields
+        byte[] toReturn  = Arrays.copyOfRange(bytesEncoder, 0, lenEncoder);
+        this.lenEncoder = 0;
+        return toReturn;
     }
+
     // short to byte (encoder)
     public byte[] shortToBytes(short num)
     {

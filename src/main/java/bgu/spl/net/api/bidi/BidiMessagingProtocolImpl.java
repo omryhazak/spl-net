@@ -14,7 +14,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
     //**********where is this shit coming from???***************
     private AllUsers allUsers;
 
-
+    // we need to write a constructor in order to pass the shared object with it
 
     @Override
     public void start(int connectionId, Connections connections) {

@@ -5,7 +5,7 @@ import bgu.spl.net.api.bidi.AllUsers;
 public class ErrorMessage extends Message {
 
     private short opCode = 11;
-    private int messageOpCode;
+    private short messageOpCode;
 
     //-------------------constructor----------
 
@@ -21,7 +21,7 @@ public class ErrorMessage extends Message {
         return opCode;
     }
 
-    public int getMessageOpCode() {
+    public short getMessageOpCode() {
         return messageOpCode;
     }
 
