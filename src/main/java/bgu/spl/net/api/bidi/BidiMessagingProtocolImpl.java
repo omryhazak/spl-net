@@ -10,9 +10,11 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
     private Connections connections;
     private int connectId;
-
-    //**********where is this shit coming from???***************
     private AllUsers allUsers;
+
+    public BidiMessagingProtocolImpl(AllUsers allUsers) {
+        this.allUsers = allUsers;
+    }
 
     // we need to write a constructor in order to pass the shared object with it
 
