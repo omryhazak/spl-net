@@ -1,9 +1,8 @@
 package bgu.spl.net.api.bidi;
 
+import bgu.spl.net.api.Pair;
 import bgu.spl.net.srv.User;
 
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -26,6 +25,7 @@ public class AllUsers {
     public AllUsers() {
 
         registeredUsersMap = new ConcurrentHashMap<>();
+        usersByName = new ConcurrentHashMap<>();
     }
 
 
@@ -52,9 +52,9 @@ public class AllUsers {
 
 
 
-    public ConcurrentLinkedQueue<String> logInToSystem(String userName, String password, int connectId) {
+    public ConcurrentLinkedQueue<Pair> logInToSystem(String userName, String password, int connectId) {
 
-        ConcurrentLinkedQueue<String> ans = new ConcurrentLinkedQueue<>();
+        ConcurrentLinkedQueue<Pair> ans = new ConcurrentLinkedQueue<>();
 
         // checks if the user exist in system by his name
         if (usersByName.contains(userName)){
@@ -196,7 +196,7 @@ public class AllUsers {
 
                     //if not logged in, add this message to users queue of messages
                     else{
-                        usersByName.get(name).addMessage(content);
+                        usersByName.get(name).addMessage(connectId, content);
                     }
                 }
 
@@ -214,7 +214,7 @@ public class AllUsers {
 
                         //if not logged in, add this message to users queue of messages
                         else{
-                            usersByName.get(name).addMessage(content);
+                            usersByName.get(name).addMessage(connectId, content);
                         }
                     }
                 }
@@ -248,6 +248,14 @@ public class AllUsers {
         }
 
         return null;
+    }
+
+    public User findUser(int connId){
+        return registeredUsersMap.get(connId);
+    }
+
+    public User findUser(String name){
+        return this.usersByName.get(name);
     }
 
 }

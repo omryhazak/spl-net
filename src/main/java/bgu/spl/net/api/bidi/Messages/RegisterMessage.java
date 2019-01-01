@@ -7,6 +7,7 @@ public class RegisterMessage extends Message {
 
     private String userName;
     private String password;
+    private short opCode = 1;
 
     public RegisterMessage(String userName, String password) {
 
@@ -21,6 +22,11 @@ public class RegisterMessage extends Message {
 
     public String getPassword() {
         return password;
+    }
+
+    @Override
+    public short getOpCode() {
+        return opCode;
     }
 
     @Override

@@ -6,9 +6,14 @@ import java.util.LinkedList;
 
 public class UserlistMessage extends Message {
 
-    private int opCode =  7;
+    private short opCode =  7;
 
     public UserlistMessage() {
+    }
+
+    @Override
+    public short getOpCode() {
+        return opCode;
     }
 
     @Override

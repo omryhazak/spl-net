@@ -6,15 +6,18 @@ public class PmMessage extends Message {
 
     private String toSend;
     private String content;
-    private int opCode =  6;
+    private short opCode =  6;
 
-    public PmMessage(String message) {
+    public PmMessage(String toSend, String content) {
 
-        String toParse = message;
-        toParse = toParse.substring(2);
-        this.toSend = toParse.substring(0, toParse.indexOf('\0'));
-        toParse = toParse.substring(0, toParse.indexOf('\0')+1);
-        this.content = toParse.substring(0, toParse.indexOf('\0'));
+        this.toSend = toSend;
+        this.content = content;
+
+        }
+
+    @Override
+    public short getOpCode() {
+        return opCode;
     }
 
     public String getToSend() {

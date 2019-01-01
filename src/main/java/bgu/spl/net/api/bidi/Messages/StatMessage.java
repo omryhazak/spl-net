@@ -5,13 +5,18 @@ import bgu.spl.net.api.bidi.AllUsers;
 public class StatMessage extends Message {
 
     private String userName;
-    private int opCode =  8;
+    private short opCode =  8;
 
     public StatMessage(String message) {
 
         String toParse = message;
         this.userName = toParse.substring(2, toParse.indexOf('\0'));
 
+    }
+
+    @Override
+    public short getOpCode() {
+        return opCode;
     }
 
     public String getUserName() {
