@@ -11,6 +11,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
     private Connections connections;
     private int connectId;
     private AllUsers allUsers;
+    boolean toTerminate;
 
     public BidiMessagingProtocolImpl(AllUsers allUsers) {
         this.allUsers = allUsers;
@@ -22,6 +23,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
     public void start(int connectionId, Connections connections) {
         this.connectId = connectionId;
         this.connections = connections;
+        this.toTerminate = false;
     }
 
     @Override
@@ -101,6 +103,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
             boolean succeed = (boolean)message.process(connectId, allUsers);
             if (succeed) {
                 connections.send(connectId, new AckMessage(message.getOpCode()));
+                toTerminate = true;
             } else {
                 connections.send(connectId, new ErrorMessage(message.getOpCode()));
             }
@@ -109,6 +112,6 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
     @Override
     public boolean shouldTerminate() {
-        return false;
+        return toTerminate;
     }
 }

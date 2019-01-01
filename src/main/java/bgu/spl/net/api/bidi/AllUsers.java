@@ -26,6 +26,9 @@ public class AllUsers {
 
         registeredUsersMap = new ConcurrentHashMap<>();
         usersByName = new ConcurrentHashMap<>();
+        usersByOrder = new LinkedList<>();
+        spyMe = new LinkedList<>();
+        lock = new Object();
     }
 
 

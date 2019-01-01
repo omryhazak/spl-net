@@ -29,16 +29,14 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         System.out.println(nextByte);
 
         //getting enough bytes to get the opCode
-        while (opCode==-1) {
+        if (opCode==-1) {
             pushByte(nextByte);
             if(len==2){
                 this.opCode = bytesToShort(Arrays.copyOfRange(this.bytes, 0, 2));
                 popString();
-
+                return null;
             }
         }
-
-        System.out.println(opCode);
 
         //register message
         if(opCode == 1){
@@ -128,6 +126,11 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
 
     private String popString(){
         String result = new String(bytes, 0, len, StandardCharsets.UTF_8);
+        //******************omry added****************
+        while(len>-1){
+            bytes[len] = 0;
+            len--;
+        }
         len = 0;
         return result;
     }

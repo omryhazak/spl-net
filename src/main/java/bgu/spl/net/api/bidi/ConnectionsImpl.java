@@ -1,15 +1,14 @@
 package bgu.spl.net.api.bidi;
 
 import bgu.spl.net.srv.ConnectionHandler;
-import bgu.spl.net.srv.User;
 
-import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+
 
 public class ConnectionsImpl<T> implements Connections<T> {
 
     //------------------fields---------------------
+
     private ConcurrentHashMap<Integer, ConnectionHandler> allSockets;
 
 

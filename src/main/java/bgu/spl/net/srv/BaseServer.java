@@ -51,7 +51,7 @@ public abstract class BaseServer<T> implements Server<T> {
                         connections
                 );
                 connections.connectToSystem(handler, counter);
-                counter = counter + 1;
+                counter++;
                 execute(handler);
             }
         } catch (IOException ex) {
