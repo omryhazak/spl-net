@@ -26,14 +26,19 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
 
     public Message decodeNextByte(byte nextByte) {
 
+        System.out.println(nextByte);
+
         //getting enough bytes to get the opCode
         while (opCode==-1) {
             pushByte(nextByte);
             if(len==2){
                 this.opCode = bytesToShort(Arrays.copyOfRange(this.bytes, 0, 2));
                 popString();
+
             }
         }
+
+        System.out.println(opCode);
 
         //register message
         if(opCode == 1){
@@ -84,6 +89,7 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
             case(9):
                 //notification message
                 return notifEncoder(message);
+
             case(10):
                 //ack message
                 return ackEncoder(message);
@@ -262,7 +268,7 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         short pmOrPublic;
         if(((NotificationMessage)message).getAnswerOpcode()==6) pmOrPublic=0;
         else pmOrPublic=1;
-        pushArrayOfBytes(shortToBytes(pmOrPublic));
+        pushByteEncode(shortToBytes(pmOrPublic)[1]);
 
         //convert and assign the username that sent the message
         pushArrayOfBytes(((NotificationMessage)message).getSentBy().getBytes());
