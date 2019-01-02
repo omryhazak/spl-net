@@ -165,8 +165,10 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
                 this.opCode = -1;
 
                 //return the message according to type argument
-                if (type == RegisterMessage.class)
+                if (type == RegisterMessage.class) {
+                    System.out.println(this.userNameForRegisterParser);
                     return new RegisterMessage(this.userNameForRegisterParser, popString());
+                }
                 else if (type == LoginMessage.class) {
                     return new LoginMessage(this.userNameForRegisterParser, popString());
                 } else return new PmMessage(this.userNameForRegisterParser, popString());

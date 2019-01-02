@@ -36,6 +36,7 @@ public class AllUsers {
 
 
     public boolean registerToSystem(User user){
+
         //goes over registered users map to check if user is already registered
         //synchronizing in order to prevent an occasion when two clients with same name tries to register the same time
         synchronized (registeredUsersMap) {
@@ -49,6 +50,7 @@ public class AllUsers {
             registeredUsersMap.put(user.getConnectId(), user);
             usersByName.put(user.getName(), user);
             usersByOrder.add(user.getName());
+            System.out.println(usersByName.get(user.getName()).getName()+ " is innnnnnn");
         }
         return true;
     }
@@ -57,31 +59,35 @@ public class AllUsers {
 
     public ConcurrentLinkedQueue<Pair> logInToSystem(String userName, String password, int connectId) {
 
-        ConcurrentLinkedQueue<Pair> ans = new ConcurrentLinkedQueue<>();
-
+        ConcurrentLinkedQueue<Pair> ans;
         // checks if the user exist in system by his name
-        if (usersByName.contains(userName)){
+        boolean isRegistered = false;
+        System.out.println("orayyy");
+        System.out.println(userName);
 
+        if (usersByName.containsKey(userName)){
+            System.out.println(1);
             User user = usersByName.get(userName);
 
             //if it is the user we are looking for, checks if the password is the same as we got
             if (user.getPassword().equals(password)) {
-
+                System.out.println(2);
                 //synchronizing the user to changes, so there wont be two threads trying to log in the same time
-                synchronized (user) {
+                synchronized (usersByName.get(userName)) {
 
                     //if the password is the same, we check if the user is already logged in
                     if (!user.hasLoggedIn()) {
-
+                        System.out.println(3);
                         //if not logged in already, we log him in
-                        user.setLoggedIn(true);
+                        usersByName.get(userName).setLoggedIn(true);
 
                         //go over his queue of messages, and send it to client
-                        ans = user.getMessages();
+                        ans = usersByName.get(userName).getMessages();
 
                         //if connection ID is different we change it to the current connection ID
                         //than we change the map so it will find the user by the new connection Id
                         if (user.getConnectId() != connectId) {
+                            System.out.println(4);
                             int oldId = user.getConnectId();
                             user.setConnectId(connectId);
                             registeredUsersMap.put(connectId, user);

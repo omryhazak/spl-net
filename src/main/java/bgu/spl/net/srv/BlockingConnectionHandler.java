@@ -44,6 +44,7 @@ public class BlockingConnectionHandler<Message> implements Runnable, ConnectionH
                     protocol.process(nextMessage);
                 }
             }
+            System.out.println("someone is closed");
 
         } catch (IOException ex) {
             ex.printStackTrace();

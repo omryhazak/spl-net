@@ -31,6 +31,8 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         //if it is Follow or UserList message
         if (message.getClass().equals(FollowMessage.class)){
+            System.out.println("entring follow process");
+
             LinkedList<String> ans = (LinkedList<String>) message.process(connectId, allUsers);
             if (ans.size() == 0){
                 connections.send(connectId, new ErrorMessage(message.getOpCode()));
@@ -42,6 +44,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         //if it is Login message
         else if (message.getClass().equals(LoginMessage.class)){
+            System.out.println("entring login process");
             ConcurrentLinkedQueue<Pair> ans = (ConcurrentLinkedQueue<Pair>) message.process(connectId, allUsers);
 
             //if we cant log in
@@ -61,6 +64,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         //if it is Post message
         else if (message.getClass().equals(PostMessage.class)){
+            System.out.println("entring post process");
 
             //get the id of the user we need to post to
             LinkedList<Integer> ans = (LinkedList<Integer>)message.process(connectId, allUsers);
@@ -77,6 +81,8 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         //if it Stat message
         else if (message.getClass().equals(StatMessage.class)){
+            System.out.println("entring stat process");
+
             int[] numbers  = (int[])message.process(connectId, allUsers);
             if(numbers != null){
                 connections.send(connectId, new AckMessage(message.getOpCode(), numbers[0], numbers[1], numbers[2]));
@@ -87,6 +93,8 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         //if it is PM message
         else if (message.getClass().equals(PmMessage.class)){
+            System.out.println("entring pm process");
+
             int ans = (int)message.process(connectId, allUsers);
             if (ans != -1){
                 connections.send(connectId, new AckMessage(message.getOpCode()));
@@ -100,10 +108,15 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         //if it is Register or Logut message
         else {
+            System.out.println("entring register or logout process");
+
             boolean succeed = (boolean)message.process(connectId, allUsers);
             if (succeed) {
                 connections.send(connectId, new AckMessage(message.getOpCode()));
-                toTerminate = true;
+
+                //if it is logout, kill the connection handler
+                if(message.getClass()==LogoutMessage.class)
+                    toTerminate = true;
             } else {
                 connections.send(connectId, new ErrorMessage(message.getOpCode()));
             }
