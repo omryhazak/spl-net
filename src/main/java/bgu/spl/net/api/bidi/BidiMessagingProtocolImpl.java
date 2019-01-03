@@ -95,10 +95,13 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
         else if (message.getClass().equals(PmMessage.class)){
             System.out.println("entring pm process");
 
-            int ans = (int)message.process(connectId, allUsers);
+            int ans = ((PmMessage)message).process(connectId, allUsers);
             if (ans != -1){
+                System.out.println(allUsers.findUser(connectId).getName() + " sent: ");
+                System.out.println(((PmMessage) message).getContent());
+                System.out.println("to: " + ((PmMessage) message).getToSend());
                 connections.send(connectId, new AckMessage(message.getOpCode()));
-                connections.send(ans, ((PmMessage) message).getContent());
+                connections.send(ans, new NotificationMessage(allUsers.findUser(connectId).getName(), ((PmMessage) message).getContent(), (short) 6));
             }
             else{
                 connections.send(connectId, new ErrorMessage(message.getOpCode()));

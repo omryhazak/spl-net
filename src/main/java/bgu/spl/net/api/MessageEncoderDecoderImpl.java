@@ -255,6 +255,7 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
                 }
                 toAdd = tmp.substring(i, j);
                 this.usersToSend.add(toAdd);
+                tmp = tmp .substring(0, j);
             }
             PostMessage p = new PostMessage(toParse, this.usersToSend);
             this.usersToSend = new LinkedList<>();

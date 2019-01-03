@@ -241,9 +241,9 @@ public class AllUsers {
     }
 
     public int sendPM(int connectId, String toSend) {
-        if (isLoggedIn(connectId) && usersByName.contains(toSend)){
+        if (isLoggedIn(connectId) && usersByName.containsKey(toSend)){
             return usersByName.get(toSend).getConnectId();
-        }
+        };
         return -1;
     }
 
