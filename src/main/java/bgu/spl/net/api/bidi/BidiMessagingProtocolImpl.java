@@ -72,10 +72,10 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
                 connections.send(connectId, new ErrorMessage(message.getOpCode()));
             }
             else {
-                connections.send(connectId, new AckMessage(message.getOpCode()));
                 for (Integer i : ans) {
                     connections.send(i, new NotificationMessage(allUsers.findUser(connectId).getName(), ((PostMessage) message).getContent(), message.getOpCode()));
                 }
+                connections.send(connectId, new AckMessage(message.getOpCode()));
             }
         }
 
@@ -97,11 +97,9 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
             int ans = ((PmMessage)message).process(connectId, allUsers);
             if (ans != -1){
-                System.out.println(allUsers.findUser(connectId).getName() + " sent: ");
-                System.out.println(((PmMessage) message).getContent());
-                System.out.println("to: " + ((PmMessage) message).getToSend());
-                connections.send(connectId, new AckMessage(message.getOpCode()));
+
                 connections.send(ans, new NotificationMessage(allUsers.findUser(connectId).getName(), ((PmMessage) message).getContent(), (short) 6));
+                connections.send(connectId, new AckMessage(message.getOpCode()));
             }
             else{
                 connections.send(connectId, new ErrorMessage(message.getOpCode()));

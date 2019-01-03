@@ -16,7 +16,7 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
     private int lenEncoder=0;
     private int zero=0;
     private int numOfUsers;
-    private int counterForFollow=0;
+    private int counter =0;
     private boolean toFollow;
     private boolean followLoop =true;
     private String userNameForRegisterParser = "";
@@ -184,52 +184,54 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
 
             //setting the boolean toFollow
             //and do not push the byte to the array
-            if (counterForFollow == 0) {
-                if ((short) nextByte == 1) {
+            if (counter == 0) {
+                if ((short) nextByte == 0) {
                     this.toFollow = true;
-                    counterForFollow++;
+                    counter++;
                 } else {
                     this.toFollow = false;
-                    counterForFollow++;
+                    counter++;
                 }
                 break;
             }
 
             //getting enough bytes to get the num of users to un/follow
-            if (counterForFollow == 1 && len < 2) {
+            if (counter == 1 && len < 2) {
                 pushByte(nextByte);
                 break;
             }
 
             //setting the num of users
             //and empty the bytes array
-            else if (counterForFollow == 1 && len == 2) {
+            else if (counter == 1 && len == 2) {
                 this.numOfUsers = (int) bytesToShort(Arrays.copyOfRange(this.bytes, 0, len));
                 popString();
-                counterForFollow++;
+                pushByte(nextByte);
+                counter++;
                 break;
             }
 
             //getting the names of the users to follow
-            if(counterForFollow==2 && zero < numOfUsers){
-                if(nextByte != '\0'){
+            if(counter ==2 && zero < numOfUsers) {
+                if (nextByte != '\0') {
                     pushByte(nextByte);
-                }
-                else{
-                    usersToFollow.add(popString());
+                } else {
+                    String name = popString();
+                    usersToFollow.add(name);
                     zero++;
+                    if (zero == numOfUsers) {
+                        FollowMessage f = new FollowMessage(this.toFollow, this.numOfUsers, this.usersToFollow);
+                        this.usersToFollow = new LinkedList<>();
+                        this.numOfUsers = 0;
+                        this.zero = 0;
+                        this.counter = 0;
+                        return f;
+                    }
                 }
-                break;
+            }
+            break;
 
              //return the message with all arguments and reset the right fields for the next decoding
-            }else if(zero == numOfUsers){
-                FollowMessage f = new FollowMessage(this.toFollow, this.numOfUsers, this.usersToFollow);
-                this.usersToFollow = new LinkedList<>();
-                this.numOfUsers = 0;
-                this.zero = 0;
-                this.counterForFollow = 0;
-                return f;
-            }
         }
         return null;
     }
@@ -244,18 +246,18 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
         // if we have all content, extract tagging
         } else {
             String toParse = popString();
-            StringBuffer buff = new StringBuffer(toParse);
+            //StringBuffer buff = new StringBuffer(toParse);
             String tmp = toParse;
-            while (buff.indexOf("@") != -1) {
+            while (tmp.indexOf("@") != -1) {
                 String toAdd;
-                int i = buff.indexOf("@") + 1;
-                int j = buff.indexOf("@") + 1;
-                while (tmp.charAt(j) != ' ') {
-                    j++;
-                }
+                int i = tmp.indexOf("@") + 1;
+                int j = tmp.indexOf(" ", i);
+//                while (tmp.charAt(j) != ' ') {
+//                    j++;
+//                }
                 toAdd = tmp.substring(i, j);
                 this.usersToSend.add(toAdd);
-                tmp = tmp .substring(0, j);
+                tmp = tmp.substring(j);
             }
             PostMessage p = new PostMessage(toParse, this.usersToSend);
             this.usersToSend = new LinkedList<>();

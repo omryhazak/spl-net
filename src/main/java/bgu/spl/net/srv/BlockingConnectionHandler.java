@@ -64,7 +64,8 @@ public class BlockingConnectionHandler<Message> implements Runnable, ConnectionH
         //also convert message to string
         try {
             out = new BufferedOutputStream(this.sock.getOutputStream());
-            out.write(encdec.encode(msg));
+            byte[] kjz = encdec.encode(msg);
+            out.write(kjz);
             out.flush();
         } catch (IOException e) {
             e.printStackTrace();

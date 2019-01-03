@@ -60,11 +60,8 @@ public class AllUsers {
     public ConcurrentLinkedQueue<Pair> logInToSystem(String userName, String password, int connectId) {
 
         ConcurrentLinkedQueue<Pair> ans;
-        // checks if the user exist in system by his name
-        boolean isRegistered = false;
-        System.out.println("orayyy");
-        System.out.println(userName);
 
+        // checks if the user exist in system by his name
         if (usersByName.containsKey(userName)){
             System.out.println(1);
             User user = usersByName.get(userName);
@@ -160,21 +157,12 @@ public class AllUsers {
 
     private void addAsFollower(int connectId, LinkedList<String> names) {
         String nameOfMe = registeredUsersMap.get(connectId).getName();
-        int counter = names.size();
 
-        while (counter > 0) {
-            //goes over all my list
-            for (Integer key : registeredUsersMap.keySet()) {
-
-                //if my list of names contains users name
-                if (names.contains(registeredUsersMap.get(key).getName())) {
-
-                    //add me to him as a follower
-                    registeredUsersMap.get(key).addFollower(nameOfMe);
-                    counter = counter - 1;
-                }
-            }
+        //goes over list of names I need to follow, and adds me as follower
+        for (String name : names){
+            usersByName.get(name).addFollower(nameOfMe);
         }
+
     }
 
     public LinkedList<String> returnUserList(){
@@ -185,7 +173,7 @@ public class AllUsers {
     public LinkedList<Integer> postMessage(int connectId, String content, LinkedList<String> usersNameToSend) {
 
         //create new list we will return, contains users we need to send them the message
-        LinkedList<Integer> output = new LinkedList<Integer>();
+        LinkedList<Integer> output = new LinkedList<>();
 
         //checks if we are logged in
         if(isLoggedIn(connectId)){
@@ -212,7 +200,7 @@ public class AllUsers {
                 //for each name in the usersname list, we chek if it is a user who registered to the system,
                 for(String name  : usersNameToSend){
 
-                    if(usersByName.contains(name)){
+                    if(usersByName.containsKey(name)){
 
                         //check if user logged in to system
                         if (usersByName.get(name).hasLoggedIn()){
