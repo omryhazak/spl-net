@@ -33,7 +33,7 @@ public class AckMessage extends Message {
 
     //constructor for Stat
     public AckMessage(short opCode, int numOfPosts, int numOfFollowers, int numOfFollowing){
-        this.opCode = opCode;
+        this.messageOpCode = opCode;
         this.numOfPosts = numOfPosts;
         this.numOfFollowers = numOfFollowers;
         this.numOfFollowing = numOfFollowing;

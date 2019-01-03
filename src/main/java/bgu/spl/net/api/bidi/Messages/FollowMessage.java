@@ -9,7 +9,7 @@ public class FollowMessage extends Message {
     private boolean toFollow;
     private int numOfUsers;
     private LinkedList<String> userNameList;
-    private short opCode =  4;
+    private short opCode = 4;
 
     public FollowMessage(boolean toFollow, int numOfUsers, LinkedList<String> userNameList) {
         this.numOfUsers = numOfUsers;
@@ -36,6 +36,6 @@ public class FollowMessage extends Message {
 
     @Override
     public LinkedList<String> process(int connectId, AllUsers allUsers) {
-        return (allUsers.followThem(connectId, numOfUsers ,userNameList, toFollow));
+        return (allUsers.followThem(connectId, numOfUsers, userNameList, toFollow));
     }
 }

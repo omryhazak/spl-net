@@ -18,6 +18,6 @@ public class UserlistMessage extends Message {
 
     @Override
     public LinkedList<String> process(int connectId, AllUsers allUsers) {
-        return allUsers.returnUserList();
+        return allUsers.returnUserList(connectId);
     }
 }

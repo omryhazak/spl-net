@@ -26,15 +26,15 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
 
     public Message decodeNextByte(byte nextByte) {
 
-        System.out.println(nextByte);
-
         //getting enough bytes to get the opCode
         if (opCode==-1) {
             pushByte(nextByte);
             if(len==2){
                 this.opCode = bytesToShort(Arrays.copyOfRange(this.bytes, 0, 2));
                 popString();
-                return null;
+                if (opCode != 7 && opCode != 3) {
+                    return null;
+                }
             }
         }
 
@@ -70,6 +70,7 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
 
         //userList message
         else if (opCode == 7){
+            opCode = -1;
             return new UserlistMessage();
         }
 
@@ -166,7 +167,6 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
 
                 //return the message according to type argument
                 if (type == RegisterMessage.class) {
-                    System.out.println(this.userNameForRegisterParser);
                     return new RegisterMessage(this.userNameForRegisterParser, popString());
                 }
                 else if (type == LoginMessage.class) {
@@ -225,6 +225,7 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
                         this.numOfUsers = 0;
                         this.zero = 0;
                         this.counter = 0;
+                        this.opCode = -1;
                         return f;
                     }
                 }
@@ -256,11 +257,14 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
 //                    j++;
 //                }
                 toAdd = tmp.substring(i, j);
-                this.usersToSend.add(toAdd);
+                if (!usersToSend.contains(toAdd)) {
+                    this.usersToSend.add(toAdd);
+                }
                 tmp = tmp.substring(j);
             }
             PostMessage p = new PostMessage(toParse, this.usersToSend);
             this.usersToSend = new LinkedList<>();
+            this.opCode = -1;
             return p;
         }
         return null;

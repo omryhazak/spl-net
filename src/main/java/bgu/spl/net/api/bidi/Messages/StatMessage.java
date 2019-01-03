@@ -7,11 +7,8 @@ public class StatMessage extends Message {
     private String userName;
     private short opCode =  8;
 
-    public StatMessage(String message) {
-
-        String toParse = message;
-        this.userName = toParse.substring(2, toParse.indexOf('\0'));
-
+    public StatMessage(String name) {
+        userName = name;
     }
 
     @Override

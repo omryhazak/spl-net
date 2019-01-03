@@ -114,6 +114,10 @@ public class User {
         followingMe.add(name);
     }
 
+    public void removeFollower(String nameOfMe) {
+        followingMe.remove(nameOfMe);
+    }
+
     public LinkedList<String> getFollowingMe() {
         return followingMe;
     }

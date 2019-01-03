@@ -149,8 +149,14 @@ public class AllUsers {
             //if so, I try to add all the names in the list to my followThem list or to unfollow them
             ans = registeredUsersMap.get(connectId).followThem(userNameList, toFollow);
 
-            //add me as folllower to all the
-            addAsFollower(connectId, ans);
+            //add me as folllower to all the names in the list if necessery
+            if(toFollow) {
+                addAsFollower(connectId, ans);
+            }
+            //else remove me
+            else{
+                removeAsFollower(connectId, ans);
+            }
         }
         return ans;
     }
@@ -165,8 +171,21 @@ public class AllUsers {
 
     }
 
-    public LinkedList<String> returnUserList(){
-        return usersByOrder;
+    private void removeAsFollower(int connectId, LinkedList<String> names) {
+        String nameOfMe = registeredUsersMap.get(connectId).getName();
+
+        //goes over list of names I need to follow, and adds me as follower
+        for (String name : names){
+            usersByName.get(name).removeFollower(nameOfMe);
+        }
+    }
+
+    public LinkedList<String> returnUserList(int connectId){
+        if (isLoggedIn(connectId)) {
+            return usersByOrder;
+        }
+        LinkedList<String> error = new LinkedList<>();
+        return error;
     }
 
 
@@ -184,16 +203,20 @@ public class AllUsers {
                 //going over the list of users following me, and add their connection ID to the list
                 for (String name : registeredUsersMap.get(connectId).getFollowingMe()){
 
-                    //check if user logged in to system
-                    if (usersByName.get(name).hasLoggedIn()){
+                    //synchronizing each user so he wont log out while we send him message
+                    synchronized (usersByName.get(name)) {
 
-                        //if so, we add hi ID to our list of connections ID
-                        output.add(usersByName.get(name).getConnectId());
-                    }
+                        //check if user logged in to system
+                        if (usersByName.get(name).hasLoggedIn()) {
 
-                    //if not logged in, add this message to users queue of messages
-                    else{
-                        usersByName.get(name).addMessage(connectId, content);
+                            //if so, we add hi ID to our list of connections ID
+                            output.add(usersByName.get(name).getConnectId());
+                        }
+
+                        //if not logged in, add this message to users queue of messages
+                        else {
+                            usersByName.get(name).addMessage(connectId, content);
+                        }
                     }
                 }
 
@@ -231,13 +254,13 @@ public class AllUsers {
     public int sendPM(int connectId, String toSend) {
         if (isLoggedIn(connectId) && usersByName.containsKey(toSend)){
             return usersByName.get(toSend).getConnectId();
-        };
+        }
         return -1;
     }
 
     public int[] getStatOfUser(String name, int connectId){
         int[] output = new int[3];
-        if (usersByName.contains(name) && isLoggedIn(connectId)){
+        if (usersByName.containsKey(name) && isLoggedIn(connectId)){
             output[0] = usersByName.get(name).getNumOfPosts();
             output[1] = registeredUsersMap.get(connectId).numOfFollowers();
             output[2] = registeredUsersMap.get(connectId).numOfFollowing();
@@ -254,6 +277,5 @@ public class AllUsers {
     public User findUser(String name){
         return this.usersByName.get(name);
     }
-
 }
 

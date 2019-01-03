@@ -30,10 +30,10 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
     public void process(Message message) {
 
         //if it is Follow or UserList message
-        if (message.getClass().equals(FollowMessage.class)){
-            System.out.println("entring follow process");
+        if (message.getClass().equals(FollowMessage.class) || message.getClass().equals(UserlistMessage.class)){
 
             LinkedList<String> ans = (LinkedList<String>) message.process(connectId, allUsers);
+
             if (ans.size() == 0){
                 connections.send(connectId, new ErrorMessage(message.getOpCode()));
             }
@@ -44,7 +44,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         //if it is Login message
         else if (message.getClass().equals(LoginMessage.class)){
-            System.out.println("entring login process");
+
             ConcurrentLinkedQueue<Pair> ans = (ConcurrentLinkedQueue<Pair>) message.process(connectId, allUsers);
 
             //if we cant log in
@@ -64,10 +64,10 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         //if it is Post message
         else if (message.getClass().equals(PostMessage.class)){
-            System.out.println("entring post process");
 
             //get the id of the user we need to post to
             LinkedList<Integer> ans = (LinkedList<Integer>)message.process(connectId, allUsers);
+
             if(ans.size()!=0 && ans.getFirst()==-1){
                 connections.send(connectId, new ErrorMessage(message.getOpCode()));
             }
@@ -81,7 +81,6 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         //if it Stat message
         else if (message.getClass().equals(StatMessage.class)){
-            System.out.println("entring stat process");
 
             int[] numbers  = (int[])message.process(connectId, allUsers);
             if(numbers != null){
@@ -93,7 +92,6 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         //if it is PM message
         else if (message.getClass().equals(PmMessage.class)){
-            System.out.println("entring pm process");
 
             int ans = ((PmMessage)message).process(connectId, allUsers);
             if (ans != -1){
@@ -109,7 +107,6 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
         //if it is Register or Logut message
         else {
-            System.out.println("entring register or logout process");
 
             boolean succeed = (boolean)message.process(connectId, allUsers);
             if (succeed) {
