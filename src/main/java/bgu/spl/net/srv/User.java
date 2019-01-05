@@ -1,9 +1,10 @@
 package bgu.spl.net.srv;
 
-import bgu.spl.net.api.Pair;
+import bgu.spl.net.api.objectOfThree;
 
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class User {
@@ -15,10 +16,11 @@ public class User {
     private boolean loggedIn;
     private LinkedList<String> followsThem;
     private LinkedList<String> followingMe;
-    private ConcurrentLinkedQueue<Pair> messages;
+    private ConcurrentLinkedQueue<objectOfThree> messages;
+    private ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
-    public User(int id, String name, String password) {
-        this.connectId = id;
+    public User(String name, String password) {
+        this.connectId = -1;
         this.name = name;
         this.password = password;
         loggedIn = false;
@@ -44,7 +46,7 @@ public class User {
     }
 
     public void setLoggedIn(boolean loggedIn) {
-        this.loggedIn = loggedIn;
+            this.loggedIn = loggedIn;
     }
 
     public boolean hasLoggedIn(){
@@ -122,17 +124,24 @@ public class User {
         return followingMe;
     }
 
-    public void addMessage(int userId, String message) {
+    //type:
+    //0 for PM
+    //1 for PUBLIC
+    public void addMessage(int userId, String message, int type) {
 
-        messages.add(new Pair(userId, message));
+        messages.add(new objectOfThree(userId, message, type));
     }
 
-    public ConcurrentLinkedQueue<Pair> getMessages() {
+    public ConcurrentLinkedQueue<objectOfThree> getMessages() {
         return messages;
     }
 
     public void setNumOfPosts() {
         this.numOfPosts = numOfPosts + 1;
+    }
+
+    public ReentrantReadWriteLock getLock() {
+        return lock;
     }
 
 

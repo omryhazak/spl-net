@@ -1,13 +1,15 @@
 package bgu.spl.net.api;
 
-public class Pair {
+public class objectOfThree {
 
     private int first;
     private String second;
+    private int third;
 
-    public Pair(int first, String second) {
+    public objectOfThree(int first, String second, int third) {
         this.first = first;
         this.second = second;
+        this.third = third;
     }
 
     public int getFirst() {
@@ -24,5 +26,9 @@ public class Pair {
 
     public void setSecond(String second) {
         this.second = second;
+    }
+
+    public int getThird() {
+        return third;
     }
 }

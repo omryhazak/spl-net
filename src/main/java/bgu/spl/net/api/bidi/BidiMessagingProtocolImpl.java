@@ -1,8 +1,7 @@
 package bgu.spl.net.api.bidi;
 
-import bgu.spl.net.api.Pair;
+import bgu.spl.net.api.objectOfThree;
 import bgu.spl.net.api.bidi.Messages.*;
-
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -45,7 +44,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
         //if it is Login message
         else if (message.getClass().equals(LoginMessage.class)){
 
-            ConcurrentLinkedQueue<Pair> ans = (ConcurrentLinkedQueue<Pair>) message.process(connectId, allUsers);
+            ConcurrentLinkedQueue<objectOfThree> ans = (ConcurrentLinkedQueue<objectOfThree>) message.process(connectId, allUsers);
 
             //if we cant log in
             if (ans == null){
@@ -55,9 +54,12 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
             else {
                 connections.send(connectId, new AckMessage(message.getOpCode()));
                 while (!ans.isEmpty()) {
-                    Pair p = ans.poll();
-                    connections.send(connectId, new NotificationMessage(allUsers.findUser(p.getFirst()).getName(), p.getSecond(), message.getOpCode()));
+                    objectOfThree p = ans.poll();
+
+                    connections.send(connectId, new NotificationMessage(allUsers.findUser(p.getFirst()).getName(), p.getSecond(), (short)p.getThird()));
                 }
+                //finished working on user, now we can release him for changes
+                allUsers.getUserById(connectId).getLock().writeLock().unlock();
             }
 
         }
@@ -70,12 +72,20 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
             if(ans.size()!=0 && ans.getFirst()==-1){
                 connections.send(connectId, new ErrorMessage(message.getOpCode()));
+
+                //finished checking users followers, we can release him for changes
+                allUsers.getUserById(connectId).getLock().readLock().unlock();
+
             }
             else {
                 for (Integer i : ans) {
                     connections.send(i, new NotificationMessage(allUsers.findUser(connectId).getName(), ((PostMessage) message).getContent(), message.getOpCode()));
+
+                    //finished using user, we can release him for changes
+                    allUsers.getUserById(i).getLock().readLock().unlock();
                 }
                 connections.send(connectId, new AckMessage(message.getOpCode()));
+
             }
         }
 
@@ -94,19 +104,25 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
         else if (message.getClass().equals(PmMessage.class)){
 
             int ans = ((PmMessage)message).process(connectId, allUsers);
-            if (ans != -1){
-
-                connections.send(ans, new NotificationMessage(allUsers.findUser(connectId).getName(), ((PmMessage) message).getContent(), (short) 6));
-                connections.send(connectId, new AckMessage(message.getOpCode()));
+            if (ans == -1){
+                connections.send(connectId, new ErrorMessage(message.getOpCode()));
+            }
+            else if(ans == -2){
+               connections.send(connectId, new AckMessage(message.getOpCode()));
             }
             else{
-                connections.send(connectId, new ErrorMessage(message.getOpCode()));
+                connections.send(ans, new NotificationMessage(allUsers.findUser(connectId).getName(), ((PmMessage) message).getContent(), (short) 0));
+
+                //we sent the message to user, now we can unlock him
+                allUsers.getUserById(ans).getLock().readLock().unlock();
+
+                connections.send(connectId, new AckMessage(message.getOpCode()));
             }
 
         }
 
-        //if it is Register or Logut message
-        else {
+        //if it is Register message
+        else if (message.getClass().equals(RegisterMessage.class)){
 
             boolean succeed = (boolean)message.process(connectId, allUsers);
             if (succeed) {
@@ -116,6 +132,23 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
                 if(message.getClass()==LogoutMessage.class)
                     toTerminate = true;
             } else {
+                connections.send(connectId, new ErrorMessage(message.getOpCode()));
+            }
+        }
+
+        //if it is Logout message
+        else{
+            boolean succeed = (boolean)message.process(connectId, allUsers);
+            if (succeed) {
+                connections.send(connectId, new AckMessage(message.getOpCode()));
+                toTerminate = true;
+
+                //unlocking the lock so other threads can write to user
+                allUsers.getUserById(connectId).getLock().writeLock().unlock();
+
+            } else {
+
+                //we already unlocked the user at allUsers action
                 connections.send(connectId, new ErrorMessage(message.getOpCode()));
             }
         }

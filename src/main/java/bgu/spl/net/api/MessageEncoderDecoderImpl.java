@@ -50,6 +50,7 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
 
         //logout message
         else if(opCode == 3){
+            opCode = -1;
             return new LogoutMessage();
         }
 
@@ -253,14 +254,17 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
                 String toAdd;
                 int i = tmp.indexOf("@") + 1;
                 int j = tmp.indexOf(" ", i);
-//                while (tmp.charAt(j) != ' ') {
-//                    j++;
-//                }
-                toAdd = tmp.substring(i, j);
+                if(j == -1){
+                    toAdd = tmp.substring(i);
+                    tmp = "";
+                }
+                else{
+                    toAdd = tmp.substring(i, j);
+                    tmp = tmp.substring(j);
+                }
                 if (!usersToSend.contains(toAdd)) {
                     this.usersToSend.add(toAdd);
                 }
-                tmp = tmp.substring(j);
             }
             PostMessage p = new PostMessage(toParse, this.usersToSend);
             this.usersToSend = new LinkedList<>();
@@ -278,7 +282,7 @@ public class MessageEncoderDecoderImpl implements  MessageEncoderDecoder<Message
 
         //convert and assign the status of the notification
         short pmOrPublic;
-        if(((NotificationMessage)message).getAnswerOpcode()==6) pmOrPublic=0;
+        if(((NotificationMessage)message).getAnswerOpcode()==0) pmOrPublic=0;
         else pmOrPublic=1;
         pushByteEncode(shortToBytes(pmOrPublic)[1]);
 

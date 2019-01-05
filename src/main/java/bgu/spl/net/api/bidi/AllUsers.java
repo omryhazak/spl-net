@@ -1,11 +1,12 @@
 package bgu.spl.net.api.bidi;
 
-import bgu.spl.net.api.Pair;
+import bgu.spl.net.api.objectOfThree;
 import bgu.spl.net.srv.User;
 
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Semaphore;
 
 
 //Data structure holding all the users info
@@ -13,22 +14,22 @@ public class AllUsers {
 
     //-----------------fields----------------------------------
 
-    private ConcurrentHashMap<Integer , User> registeredUsersMap;
+    private ConcurrentHashMap<Integer , User> loggedInUsersMap;
     private ConcurrentHashMap<String , User> usersByName;
     private LinkedList<String> spyMe;
     private LinkedList<String> usersByOrder;
-    private Object lock;
+    private Semaphore sem;
 
 
     // ---------------constructor-------------------------------
 
     public AllUsers() {
 
-        registeredUsersMap = new ConcurrentHashMap<>();
+        loggedInUsersMap = new ConcurrentHashMap<>();
         usersByName = new ConcurrentHashMap<>();
         usersByOrder = new LinkedList<>();
         spyMe = new LinkedList<>();
-        lock = new Object();
+        sem = new Semaphore(1);
     }
 
 
@@ -37,46 +38,53 @@ public class AllUsers {
 
     public boolean registerToSystem(User user){
 
-        //goes over registered users map to check if user is already registered
-        //synchronizing in order to prevent an occasion when two clients with same name tries to register the same time
-        synchronized (registeredUsersMap) {
-            for (Integer key : registeredUsersMap.keySet()) {
+        //starts semaphore that will not let two clients with same name to register together
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-                //checks if exist user with the same name in system
-                if (registeredUsersMap.get(key).getName().equals(user.getName())) return false;
-            }
-
-            //if there is no other user with the same id, name or password register this user to system
-            registeredUsersMap.put(user.getConnectId(), user);
+        //checks if there is an user with the same name
+        if (!usersByName.containsKey(user.getName())) {
             usersByName.put(user.getName(), user);
             usersByOrder.add(user.getName());
-            System.out.println(usersByName.get(user.getName()).getName()+ " is innnnnnn");
+            sem.release();
+            return true;
         }
-        return true;
+
+        //releases semaphore
+        sem.release();
+        return false;
     }
 
 
 
-    public ConcurrentLinkedQueue<Pair> logInToSystem(String userName, String password, int connectId) {
+    public ConcurrentLinkedQueue<objectOfThree> logInToSystem(String userName, String password, int connectId) {
 
-        ConcurrentLinkedQueue<Pair> ans;
+        ConcurrentLinkedQueue<objectOfThree> ans;
 
         // checks if the user exist in system by his name
         if (usersByName.containsKey(userName)){
-            System.out.println(1);
+
             User user = usersByName.get(userName);
 
             //if it is the user we are looking for, checks if the password is the same as we got
             if (user.getPassword().equals(password)) {
-                System.out.println(2);
-                //synchronizing the user to changes, so there wont be two threads trying to log in the same time
-                synchronized (usersByName.get(userName)) {
+
+                usersByName.get(user.getName()).getLock().writeLock().lock();
 
                     //if the password is the same, we check if the user is already logged in
-                    if (!user.hasLoggedIn()) {
-                        System.out.println(3);
+                    if (!isLoggedIn(user.getConnectId())) {
+
                         //if not logged in already, we log him in
                         usersByName.get(userName).setLoggedIn(true);
+
+                        //gives the user his current connectId
+                        usersByName.get(userName).setConnectId(connectId);
+
+                        //if there is no other user with the same name that is already logged in register this user to system
+                        loggedInUsersMap.put(user.getConnectId(), user);
 
                         //go over his queue of messages, and send it to client
                         ans = usersByName.get(userName).getMessages();
@@ -84,16 +92,14 @@ public class AllUsers {
                         //if connection ID is different we change it to the current connection ID
                         //than we change the map so it will find the user by the new connection Id
                         if (user.getConnectId() != connectId) {
-                            System.out.println(4);
                             int oldId = user.getConnectId();
                             user.setConnectId(connectId);
-                            registeredUsersMap.put(connectId, user);
-                            registeredUsersMap.remove(oldId);
+                            loggedInUsersMap.put(connectId, user);
+                            loggedInUsersMap.remove(oldId);
                         }
 
                         return ans;
                     }
-                }
             }
 
         }
@@ -104,36 +110,37 @@ public class AllUsers {
 
     public boolean logOut(int connectId) {
 
-//       *********????????************* //synchronizing logOut and post, so we know where to put the message (to the user himself, or in his queue of messages) and
-//        //also to prevent an occasion when we try to post a message to some one whom logged out and connected with other connect ID
-//        synchronized (lock) {
+        synchronized (loggedInUsersMap) {
 
             //checks if user logged into system
             if (isLoggedIn(connectId)) {
 
+                //blocking user to changes while we read from it. if someone wants to change users status he will need to wait until we unlock.
+                //we unlock this key at the protocol after(!) we finish the process and sends by connectionhandler this message of disconnect
+                loggedInUsersMap.get(connectId).getLock().writeLock().lock();
+
                 //if so, logging out
-                registeredUsersMap.get(connectId).setLoggedIn(false);
+                loggedInUsersMap.get(connectId).setLoggedIn(false);
+
                 return true;
+
             }
             return false;
-
-
-//        }
-
-
+        }
 
     }
 
 
+    //we dont need to lock the operation, we lock user everytime we call this function!
     private boolean isLoggedIn(int connectId) {
-        //synchronizing user in order to prevent occasion when one thread trying to check if user logged in and other thread trying to unregister him
-        synchronized (registeredUsersMap.get(connectId)) {
+
+        synchronized (loggedInUsersMap) {
 
             //checks if the user exists in system
-            if (registeredUsersMap.containsKey(connectId)) {
+            if (loggedInUsersMap.containsKey(connectId)) {
 
                 //checks if user logged in to system
-                return registeredUsersMap.get(connectId).hasLoggedIn();
+                return loggedInUsersMap.get(connectId).hasLoggedIn();
             }
         }
         return false;
@@ -144,106 +151,123 @@ public class AllUsers {
         LinkedList<String> ans = new LinkedList<>();
 
         //checks if I am logged in
+        //no need to synchronize because this thread is the only one capable of logging out
         if (isLoggedIn(connectId)) {
 
-            //if so, I try to add all the names in the list to my followThem list or to unfollow them
-            ans = registeredUsersMap.get(connectId).followThem(userNameList, toFollow);
-
-            //add me as folllower to all the names in the list if necessery
-            if(toFollow) {
-                addAsFollower(connectId, ans);
+            //checks if user out of list is exist
+            for(String name : userNameList){
+                if(!usersByName.containsKey(name)){
+                    userNameList.remove(name);
+                }
             }
-            //else remove me
-            else{
-                removeAsFollower(connectId, ans);
+
+            //if so, I try to add all the names in the list to my followThem list or to unfollow them
+            ans = loggedInUsersMap.get(connectId).followThem(userNameList, toFollow);
+
+            if(ans.size()>0) {
+
+                //add me as folllower to all the names in the list if necessary
+                if (toFollow) {
+                    addAsFollower(connectId, ans);
+                }
+                //else remove me
+                else {
+                    removeAsFollower(connectId, ans);
+                }
             }
         }
+
         return ans;
     }
 
     private void addAsFollower(int connectId, LinkedList<String> names) {
-        String nameOfMe = registeredUsersMap.get(connectId).getName();
+        String nameOfMe = loggedInUsersMap.get(connectId).getName();
 
         //goes over list of names I need to follow, and adds me as follower
         for (String name : names){
+
+            //adds me as follower of user
             usersByName.get(name).addFollower(nameOfMe);
         }
 
     }
 
     private void removeAsFollower(int connectId, LinkedList<String> names) {
-        String nameOfMe = registeredUsersMap.get(connectId).getName();
+        String nameOfMe = loggedInUsersMap.get(connectId).getName();
 
         //goes over list of names I need to follow, and adds me as follower
         for (String name : names){
+
+            //removes me from followers list of user
             usersByName.get(name).removeFollower(nameOfMe);
         }
     }
 
+    //here we dont need any synchronizing because the same user is the only one who can log himself out,
+    //but it is the same thread so it will happend by order and wont be any problem
     public LinkedList<String> returnUserList(int connectId){
+
+        //blocks user for writing, let other threads to read details from user
         if (isLoggedIn(connectId)) {
             return usersByOrder;
         }
+
+        //we dont need the user any more
+        loggedInUsersMap.get(connectId).getLock().readLock().unlock();
+
         LinkedList<String> error = new LinkedList<>();
         return error;
     }
 
 
     public LinkedList<Integer> postMessage(int connectId, String content, LinkedList<String> usersNameToSend) {
-
         //create new list we will return, contains users we need to send them the message
         LinkedList<Integer> output = new LinkedList<>();
 
-        //checks if we are logged in
-        if(isLoggedIn(connectId)){
+        //check if I am logged in
+        if(loggedInUsersMap.get(connectId).hasLoggedIn()){
 
-            //synchronizing registeredUsersMap so no one will not change the list while we are iterating over it
-            synchronized (registeredUsersMap){
+            //getts all the users following me
+            User me = loggedInUsersMap.get(connectId);
 
-                //going over the list of users following me, and add their connection ID to the list
-                for (String name : registeredUsersMap.get(connectId).getFollowingMe()){
+            //create new list for temporal time, holds all the users follow me
+            LinkedList<String> tmp = me.getFollowingMe();
 
-                    //synchronizing each user so he wont log out while we send him message
-                    synchronized (usersByName.get(name)) {
+            //going over names in the list,
+            for(String name : usersNameToSend){
 
-                        //check if user logged in to system
-                        if (usersByName.get(name).hasLoggedIn()) {
+                //checks if every name is real name of user and if so,
+                if(usersByName.containsKey(name)){
 
-                            //if so, we add hi ID to our list of connections ID
-                            output.add(usersByName.get(name).getConnectId());
-                        }
-
-                        //if not logged in, add this message to users queue of messages
-                        else {
-                            usersByName.get(name).addMessage(connectId, content);
-                        }
+                    //checks if he is not already at list,
+                    if(!tmp.contains(name)){
+                        tmp.add(name);
                     }
                 }
-
-                //for each name in the usersname list, we chek if it is a user who registered to the system,
-                for(String name  : usersNameToSend){
-
-                    if(usersByName.containsKey(name)){
-
-                        //check if user logged in to system
-                        if (usersByName.get(name).hasLoggedIn()){
-
-                            //if so, we add hi ID to our list of connections ID
-                            output.add(usersByName.get(name).getConnectId());
-                        }
-
-                        //if not logged in, add this message to users queue of messages
-                        else{
-                            usersByName.get(name).addMessage(connectId, content);
-                        }
-                    }
-                }
-
             }
 
-            //if message was sent, increment num of posts for user and spy him forever
-            registeredUsersMap.get(connectId).setNumOfPosts();
-            spyMe.add(content);
+            //now we go over tmp list, contains all the names we need to post them the message
+            for(String name : tmp){
+
+                User user = usersByName.get(name);
+
+                //loock user to changes
+                user.getLock().readLock().lock();
+
+                //now we can check if he is logged in. if so we will send him the message
+                if(usersByName.get(name).hasLoggedIn()){
+                    output.add(user.getConnectId());
+                }
+
+                //if not logged in, we will push the message to his queue
+                else{
+                    user.addMessage(connectId, content, 1);
+
+                    //we can now unlock him for changes
+                    user.getLock().readLock().unlock();
+                }
+            }
+
             return output;
         }
 
@@ -251,9 +275,42 @@ public class AllUsers {
         return output;
     }
 
-    public int sendPM(int connectId, String toSend) {
+    private void handleUser (int connectId, String name, String content, LinkedList<Integer> output) {
+        //check if user logged in to system
+        if (usersByName.get(name).hasLoggedIn()) {
+
+            //if so, we add hi ID to our list of connections ID
+            output.add(usersByName.get(name).getConnectId());
+        }
+
+        //if not logged in, add this message to users queue of messages
+        else {
+            usersByName.get(name).addMessage(connectId, content,1 );
+
+            //we finished changes for follower, now we can release his lock
+            usersByName.get(name).getLock().writeLock().unlock();
+
+        }
+    }
+
+
+    public int sendPM(int connectId, String toSend, String content) {
+
         if (isLoggedIn(connectId) && usersByName.containsKey(toSend)){
-            return usersByName.get(toSend).getConnectId();
+
+            User user = usersByName.get(toSend);
+            //blocks user to changes, so we will be able to send him messages
+            user.getLock().readLock().lock();
+
+            if(isLoggedIn(user.getConnectId())){
+                return usersByName.get(toSend).getConnectId();
+            }
+
+            else{
+                user.addMessage(connectId, content, 0);
+                user.getLock().readLock().unlock();
+                return -2;
+            }
         }
         return -1;
     }
@@ -262,8 +319,8 @@ public class AllUsers {
         int[] output = new int[3];
         if (usersByName.containsKey(name) && isLoggedIn(connectId)){
             output[0] = usersByName.get(name).getNumOfPosts();
-            output[1] = registeredUsersMap.get(connectId).numOfFollowers();
-            output[2] = registeredUsersMap.get(connectId).numOfFollowing();
+            output[1] = loggedInUsersMap.get(connectId).numOfFollowers();
+            output[2] = loggedInUsersMap.get(connectId).numOfFollowing();
             return output;
         }
 
@@ -271,11 +328,11 @@ public class AllUsers {
     }
 
     public User findUser(int connId){
-        return registeredUsersMap.get(connId);
+        return loggedInUsersMap.get(connId);
     }
 
-    public User findUser(String name){
-        return this.usersByName.get(name);
+    public User getUserById(int id) {
+        return loggedInUsersMap.get(id);
     }
 }
 

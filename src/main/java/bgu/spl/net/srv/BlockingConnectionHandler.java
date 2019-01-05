@@ -44,7 +44,7 @@ public class BlockingConnectionHandler<Message> implements Runnable, ConnectionH
                     protocol.process(nextMessage);
                 }
             }
-            this.connections.disconnect(connectionId);
+            close();
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -54,6 +54,7 @@ public class BlockingConnectionHandler<Message> implements Runnable, ConnectionH
 
     @Override
     public void close() throws IOException {
+        this.connections.disconnect(connectionId);
         connected = false;
         sock.close();
     }

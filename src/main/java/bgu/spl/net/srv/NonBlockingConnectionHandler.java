@@ -43,6 +43,9 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
         ByteBuffer buf = leaseBuffer();
 
         boolean success = false;
+
+        protocol.start(connectionId,connections);
+
         try {
             success = chan.read(buf) != -1;
         } catch (IOException ex) {
@@ -57,10 +60,6 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
                         T nextMessage = encdec.decodeNextByte(buf.get());
                         if (nextMessage != null) {
                             protocol.process(nextMessage);
-//                            if (response != null) {
-//                                writeQueue.add(ByteBuffer.wrap(encdec.encode(response)));
-//                                reactor.updateInterestedOps(chan, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-//                            }
                         }
                     }
                 } finally {
@@ -77,6 +76,7 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
 
     public void close() {
         try {
+            this.connections.disconnect(connectionId);
             chan.close();
         } catch (IOException ex) {
             ex.printStackTrace();

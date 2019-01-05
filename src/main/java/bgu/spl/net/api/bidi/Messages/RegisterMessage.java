@@ -32,7 +32,7 @@ public class RegisterMessage extends Message {
     @Override
     public Boolean process(int connectId, AllUsers allUsers){
         //initializing the user object we will use later in the data base AllUsers
-        User user = new User(connectId, userName, password);
+        User user = new User(userName, password);
 
         //trying to register user to system
         return(allUsers.registerToSystem(user));

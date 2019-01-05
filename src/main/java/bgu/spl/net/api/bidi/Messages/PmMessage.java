@@ -30,6 +30,6 @@ public class PmMessage extends Message {
 
     @Override
     public Integer process(int connectId, AllUsers allUsers) {
-        return allUsers.sendPM(connectId, toSend);
+        return allUsers.sendPM(connectId, toSend, content);
     }
 }

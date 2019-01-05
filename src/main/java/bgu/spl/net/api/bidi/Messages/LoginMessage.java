@@ -1,6 +1,6 @@
 package bgu.spl.net.api.bidi.Messages;
 
-import bgu.spl.net.api.Pair;
+import bgu.spl.net.api.objectOfThree;
 import bgu.spl.net.api.bidi.AllUsers;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -32,7 +32,7 @@ public class LoginMessage extends Message {
     }
 
     @Override
-    public ConcurrentLinkedQueue<Pair> process(int connectId, AllUsers allUsers) {
+    public ConcurrentLinkedQueue<objectOfThree> process(int connectId, AllUsers allUsers) {
         return allUsers.logInToSystem(userName, password, connectId);
     }
 }
