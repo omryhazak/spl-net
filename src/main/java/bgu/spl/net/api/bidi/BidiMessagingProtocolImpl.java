@@ -46,18 +46,50 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
 
             ConcurrentLinkedQueue<objectOfThree> ans = (ConcurrentLinkedQueue<objectOfThree>) message.process(connectId, allUsers);
 
-            //if we cant log in
-            if (ans == null){
-                connections.send(connectId, new ErrorMessage(message.getOpCode()));
-            }
-            //if we can log in,
-            else {
+            if(ans.size() == 1) {
+                objectOfThree tmp = ans.poll();
+
+                //if we dont have user with that name
+                if (tmp.getFirst() == -1) {
+                    connections.send(connectId, new ErrorMessage(message.getOpCode()));
+                }
+
+                //if we have user with that name whom we locked, but we dont have the correct password or he is already logged in
+                else if (tmp.getFirst() == -2) {
+                    connections.send(connectId, new ErrorMessage(message.getOpCode()));
+
+
+                    allUsers.getUserById(connectId);
+
+                    String name = ((LoginMessage) message).getUserName();
+
+                    allUsers.findUser(name).getLock().writeLock().unlock();
+                }
+
+                //if we have user with that name whom we locked, and the password is correct but there are no messages waiting
+                else if (tmp.getFirst() == -3) {
+                    connections.send(connectId, new AckMessage(message.getOpCode()));
+                    allUsers.getUserById(connectId).getLock().writeLock().unlock();
+                }
+
+                //if we did login and only one message is waiting for us
+                else{
+                    connections.send(connectId, new AckMessage(message.getOpCode()));
+                    connections.send(connectId, new NotificationMessage(allUsers.getUserById(tmp.getFirst()).getName(), tmp.getSecond(), (short)tmp.getThird()));
+                    allUsers.getUserById(connectId).getLock().writeLock().unlock();
+                }
+
+                //if we can log in, and we have more than one message
+            }  else {
                 connections.send(connectId, new AckMessage(message.getOpCode()));
+
                 while (!ans.isEmpty()) {
                     objectOfThree p = ans.poll();
 
-                    connections.send(connectId, new NotificationMessage(allUsers.findUser(p.getFirst()).getName(), p.getSecond(), (short)p.getThird()));
+                    connections.send(connectId, new NotificationMessage(allUsers.getUserById(p.getFirst()).getName(), p.getSecond(), (short)p.getThird()));
+
                 }
+
                 //finished working on user, now we can release him for changes
                 allUsers.getUserById(connectId).getLock().writeLock().unlock();
             }
@@ -79,7 +111,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
             }
             else {
                 for (Integer i : ans) {
-                    connections.send(i, new NotificationMessage(allUsers.findUser(connectId).getName(), ((PostMessage) message).getContent(), message.getOpCode()));
+                    connections.send(i, new NotificationMessage(allUsers.getUserById(connectId).getName(), ((PostMessage) message).getContent(), message.getOpCode()));
 
                     //finished using user, we can release him for changes
                     allUsers.getUserById(i).getLock().readLock().unlock();
@@ -111,7 +143,7 @@ public class BidiMessagingProtocolImpl implements BidiMessagingProtocol<Message>
                connections.send(connectId, new AckMessage(message.getOpCode()));
             }
             else{
-                connections.send(ans, new NotificationMessage(allUsers.findUser(connectId).getName(), ((PmMessage) message).getContent(), (short) 0));
+                connections.send(ans, new NotificationMessage(allUsers.getUserById(connectId).getName(), ((PmMessage) message).getContent(), (short) 0));
 
                 //we sent the message to user, now we can unlock him
                 allUsers.getUserById(ans).getLock().readLock().unlock();

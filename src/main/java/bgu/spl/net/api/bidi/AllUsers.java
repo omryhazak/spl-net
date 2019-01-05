@@ -62,49 +62,55 @@ public class AllUsers {
 
     public ConcurrentLinkedQueue<objectOfThree> logInToSystem(String userName, String password, int connectId) {
 
-        ConcurrentLinkedQueue<objectOfThree> ans;
+        ConcurrentLinkedQueue<objectOfThree> ans = new ConcurrentLinkedQueue<>();
 
         // checks if the user exist in system by his name
         if (usersByName.containsKey(userName)){
 
-            User user = usersByName.get(userName);
+            usersByName.get(userName).getLock().writeLock().lock();
 
             //if it is the user we are looking for, checks if the password is the same as we got
-            if (user.getPassword().equals(password)) {
-
-                usersByName.get(user.getName()).getLock().writeLock().lock();
+            if (usersByName.get(userName).getPassword().equals(password)) {
 
                     //if the password is the same, we check if the user is already logged in
-                    if (!isLoggedIn(user.getConnectId())) {
+                    if (!isLoggedIn(usersByName.get(userName).getConnectId())) {
 
                         //if not logged in already, we log him in
                         usersByName.get(userName).setLoggedIn(true);
 
-                        //gives the user his current connectId
-                        usersByName.get(userName).setConnectId(connectId);
-
-                        //if there is no other user with the same name that is already logged in register this user to system
-                        loggedInUsersMap.put(user.getConnectId(), user);
+                        //if connection ID is different we change it to the current connection ID
+                        //than we change the map so it will find the user by the new connection Id
+                        if (usersByName.get(userName).getConnectId() != connectId) {
+                            int oldId = usersByName.get(userName).getConnectId();
+                            usersByName.get(userName).setConnectId(connectId);
+                            loggedInUsersMap.remove(oldId);
+                            loggedInUsersMap.put(connectId, usersByName.get(userName));
+                        }
+                        else{
+                            loggedInUsersMap.put(connectId, usersByName.get(userName));
+                        }
 
                         //go over his queue of messages, and send it to client
                         ans = usersByName.get(userName).getMessages();
 
-                        //if connection ID is different we change it to the current connection ID
-                        //than we change the map so it will find the user by the new connection Id
-                        if (user.getConnectId() != connectId) {
-                            int oldId = user.getConnectId();
-                            user.setConnectId(connectId);
-                            loggedInUsersMap.put(connectId, user);
-                            loggedInUsersMap.remove(oldId);
+                        //if we have no message and we dont want to return null ans
+                        if(ans.size() == 0){
+                            ans.add(new objectOfThree(-3, "", 0));
                         }
 
                         return ans;
                     }
             }
 
+            //if we have user with that name but the password is not good - we still need to unlock him, same if he is already logged in
+            ans.add(new objectOfThree(-2, "", 0));
+            return ans;
+
         }
 
-        return null;
+        //if we didnt even have user with this name so we cant lock him at all
+        ans.add(new objectOfThree(-1, "", 0));
+        return ans;
     }
 
 
@@ -121,7 +127,6 @@ public class AllUsers {
 
                 //if so, logging out
                 loggedInUsersMap.get(connectId).setLoggedIn(false);
-
                 return true;
 
             }
@@ -221,6 +226,7 @@ public class AllUsers {
 
 
     public LinkedList<Integer> postMessage(int connectId, String content, LinkedList<String> usersNameToSend) {
+
         //create new list we will return, contains users we need to send them the message
         LinkedList<Integer> output = new LinkedList<>();
 
@@ -327,8 +333,8 @@ public class AllUsers {
         return null;
     }
 
-    public User findUser(int connId){
-        return loggedInUsersMap.get(connId);
+    public User findUser(String name){
+        return usersByName.get(name);
     }
 
     public User getUserById(int id) {
